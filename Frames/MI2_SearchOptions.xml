@@ -136,7 +136,7 @@
 							<Offset>
 								<AbsDimension x="-30" y="10"/></Offset></Anchor></Anchors>
 					<Scripts>
-						<OnVerticalScroll>FauxScrollFrame_OnVerticalScroll( self, offset, 14, MI2_SearchResult_Update );</OnVerticalScroll>
+						<OnVerticalScroll>FauxScrollFrame_OnVerticalScroll( 14, MI2_SearchResult_Update );</OnVerticalScroll>
 					</Scripts>
 				</ScrollFrame>
 				<!-- ==================================================== -->

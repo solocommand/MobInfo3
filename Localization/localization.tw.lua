@@ -1,4 +1,4 @@
-﻿--   
+--   
 -- zhTW Chinese Traditional Localisation for MobInfo
 --
 -- created by 艾娜羅沙@奧妮克希亞
