@@ -135,6 +135,9 @@ About once every half year I update the MobInfo table with the most up-to-date p
              MobInfo-2 Version History
 ***-----------------------------------------------***
 ***-----------------------------------------------***
+3.72
+  * fixed: scroll error in search frame
+
 3.71
   * fixed: added an old module into the system to tie it all together while I attempt to track down the bug.
 
