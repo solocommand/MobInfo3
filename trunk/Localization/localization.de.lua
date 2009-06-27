@@ -1,4 +1,4 @@
-﻿-- 
+-- 
 -- German Localisation for MobInfo
 --
 -- created by Skeeve

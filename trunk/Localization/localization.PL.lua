@@ -1,4 +1,4 @@
-﻿-- 
+-- 
 -- Default English Localisation for MobInfo
 --
 -- created by Stephan Wilms 
