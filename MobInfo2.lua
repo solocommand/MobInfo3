@@ -59,11 +59,11 @@ local miSkinLoot = { [2934]=1, [2318]=1, [2319]=1, [4234]=1, [4304]=1, [8170]=1,
                      [6470]=1, [6471]=1, [7392]=1, [8165]=1,
                     [23107]=1,[24189]=1,[21929]=1,
 					[27859]=1,[22575]=1,[22790]=1,[22785]=1,[25813]=1,[22789]=1,
-                    [25708]=1,[29548]=1,[29539]=1,[29547]=1 }
+                    [25708]=1,[29548]=1,[29539]=1,[29547]=1,[33567]=1,[33568]=1,[44128]=1,[38557]=1,[38558]=1,[38561]=1 }
 
 -- cloth loot table using localization independant item IDs
--- Linen Cloth, Wool Cloth, Silk Cloth, Mageweave Cloth, Felcloth, Runecloth, Mooncloth, Netherweave
-local miClothLoot = { [2589]=1, [2592]=1, [4306]=1, [4338]=1, [14256]=1, [14047]=1, [14342]=1, [21877 ]=1 };
+-- Linen Cloth, Wool Cloth, Silk Cloth, Mageweave Cloth, Felcloth, Runecloth, Mooncloth, Netherweave, Frostweave
+local miClothLoot = { [2589]=1, [2592]=1, [4306]=1, [4338]=1, [14256]=1, [14047]=1, [14342]=1, [21877 ]=1, [33470]=1 };
 
 local MI2_CollapseList = { [2725]=2725, [2728]=2725, [2730]=2725, [2732]=2725,
                            [2734]=2725, [2735]=2725, [2738]=2725, [2740]=2725, [2742]=2725,
