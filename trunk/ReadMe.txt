@@ -135,6 +135,9 @@ About once every half year I update the MobInfo table with the most up-to-date p
              MobInfo-2 Version History
 ***-----------------------------------------------***
 ***-----------------------------------------------***
+3.73
+  * fixed: added changes for 3.2 PTR based on GetBuildInfo()
+
 3.72
   * fixed: scroll error in search frame
 
