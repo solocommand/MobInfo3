@@ -16,6 +16,7 @@ Localization\localization.de.lua
 Localization\localization.fr.lua 
 Localization\localization.tw.lua 
 Localization\localization.es.lua
+Localization\localization.ru.lua 
 
 # main AddOns source code
 MobInfo2.lua
