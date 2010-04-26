@@ -2,7 +2,7 @@
 -- MobInfo.lua
 --
 -- Main module of MobInfo-2 AddOn
-miVersionNo = '3.73'
+miVersionNo = '@project-version@'
 --
 -- MobInfo-2 is a World of Warcraft AddOn that provides you with useful
 -- additional information about Mobs (ie. opponents/monsters). It adds

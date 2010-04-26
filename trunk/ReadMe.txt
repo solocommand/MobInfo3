@@ -135,6 +135,13 @@ About once every half year I update the MobInfo table with the most up-to-date p
              MobInfo-2 Version History
 ***-----------------------------------------------***
 ***-----------------------------------------------***
+3.75
+  * changed: version is now repository keyword in developer working copy
+  * updated: changelog
+
+3.74
+  * fixed: Fixed change for 3.2 PTR to work on 3.3 and above as well :-/
+
 3.73
   * fixed: added changes for 3.2 PTR based on GetBuildInfo()
 
