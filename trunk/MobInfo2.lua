@@ -2143,7 +2143,7 @@ function MI2_BuildTooltipMob( mobName, mobLevel, unit, isMob )
 
 	-- PTR Code
 	local col
-	if tocVersion == 30200 then
+	if tocVersion >= 30200 then
 		col = GetQuestDifficultyColor(mobLevel)
 	else
 		col = GetDifficultyColor(mobLevel)
