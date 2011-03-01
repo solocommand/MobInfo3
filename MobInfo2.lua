@@ -32,6 +32,8 @@ local MI2_CurrentCorpseIndex = nil
 local MI2_RecentLoots = {}
 local MI2_SpellToSchool = {}
 local MI2_CACHE_SIZE = 30
+local GetSpellName = GetSpellName or GetSpellBookItemName
+local GetDifficultyColor = GetDifficultyColor or GetQuestDifficultyColor
 
 -- PTR code
 local _, _, _, tocVersion = GetBuildInfo()
@@ -46,30 +48,69 @@ local _, _, _, tocVersion = GetBuildInfo()
 --    deviate scale, perfect deviate scale, green whelp scale, worn dragonscale
 --    Shadow Draenite, Crystalline Fragments, Flame Spessarite
 --    Thick Clefthoof Leather, Nether Dragonscales, Cobra Scales, Wind Scales
+--    Borean Leather Scraps, Borean Leather, Arctic Fur, Icy Dragonscale, Nerubian Chitin, Jormungar Scale
+--    Savage Leather, Savage Leather SCraps, Strange Bloated Stomach, Blackened Dragonscale,
+--    Pristine Hide, Deepsea Scale,
 -- 
 -- skinning loot items that you only get with herbalism:
 --    Zangar Caps, Mote of Life, Ancient Lichen, Felweed, Small Mushroom, Terocone 
 --
 -- removed "Shiny Fish Scales" ([17057]=1,) because its also normal loot
 --
-local miSkinLoot = { [2934]=1, [2318]=1, [2319]=1, [4234]=1, [4304]=1, [8170]=1,
-                    [15423]=1,[15417]=1,[15422]=1,[15419]=1,[17012]=1, [5082]=1, [25699]=1,
-                    [21887]=1,[25649]=1,[20499]=1,[20498]=1,[25700]=1,[25707]=1,
-                      [783]=1, [4232]=1, [4235]=1, [8169]=1, [8171]=1, [7428]=1, [8368]=1,
-                     [8154]=1, [7287]=1, [8167]=1, [7286]=1,[12607]=1,
-                    [15416]=1,[15415]=1,[15414]=1,[15412]=1, [8165]=1,[15408]=1,
-                     [6470]=1, [6471]=1, [7392]=1, [8165]=1,
-                    [23107]=1,[24189]=1,[21929]=1,
-					[27859]=1,[22575]=1,[22790]=1,[22785]=1,[25813]=1,[22789]=1,
-                    [25708]=1,[29548]=1,[29539]=1,[29547]=1 }
+
+-- consider using LibPeriodicTable-3.1 since it is frequently updated
+--[[
+lpt = {
+		["Tradeskill.Gather.Skinning"]="783,2318,2319,2934,4232,4234,4235,4304,4371,4375,4377,4404,6470,6471,7286,7287,7392,8154,8165,8167,8169,8170,8171,8973,11512,12366,12607,12731,15408,15410,15412,15414,15415,15416,15417,15419,17012,17057,18947,19767,19768,20498,20499,20500,20501,21222,21877,21887,23677,25418,25649,25699,25700,25707,25708,29539,29547,29548,32470,33567,33568,35229,36729,38557,38558,38561,42510,42542,44128,44687,52976,52977,52979,52980,52982,56053,57058,57059,57068,57070,60392,60393,67495",
+		
+		["Tradeskill.Gather.Herbalism"]="765,785,2447,2449,2450,2452,2453,3355,3356,3357,3358,3369,3818,3819,3820,3821,4625,5056,8153,8831,8836,8838,8839,8845,8846,11514,13463,13464,13465,13466,13467,13468,18222,18223,22575,22576,22710,22785,22786,22787,22788,22789,22790,22791,22792,22793,22794,22795,23331,23987,23988,24401,25315,25813,27859,29453,32468,32506,33452,35229,35947,36901,36903,36904,36905,36906,36907,36908,37704,37921,39516,39970,52329,52983,52984,52985,52986,52987,52988,54627,54628,54630,58962,63122,67357",
+
+		-- or these
+		["Tradeskill.Mat.ByType.Cloth"]="2589,2592,4306,4338,14047,14256,14342,21845,21877,24271,24272,33470,41593,41594,41595",
+		["Tradeskill.Mat.ByType.Gem"]="12799,818,12800,11382,1206,774,1705,1210,12361,9262,1529,12363,11754,12364,7910,3864,19774,7909,32227,32228,32229,32230,32231,32249,36784,36917,36918,36920,36921,36923,36924,36926,36927,36929,36930,36932,36933,41266,41334,42225",
+		["Tradeskill.Mat.ByType.Herb"]="3819,8153,3355,22789,2452,8838,3820,765,22787,8831,13466,2447,22792,22791,13465,22793,785,3357,3356,3358,13467,8846,3369,13464,3821,8845,22788,4625,22785,22794,3818,2449,22786,13463,2453,2450,8839,8836,22790,19726,13468,36901,36902,36903,36904,36905,36906,36907,36908,37921",
+		["Tradeskill.Mat.ByType.Hide"]="783,4231,4232,4233,4235,4236,4461,7428,8169,8171,8172,8368,15407,25707",
+		["Tradeskill.Mat.ByType.Leather"]="2318,2319,2934,4234,4304,5082,8170,12810,15417,15419,15422,15423,17012,19767,19768,21887,23793,25649,25699,25708,33568,38425,44128",
+		["Tradeskill.Mat.ByType.Ore"]="23426,23427,23424,23425,2775,2776,18562,2770,3858,2771,11370,2772,7911,10620,36909,36910,36912",
+		["Tradeskill.Mat.ByType.Scale"]="5784,5785,6470,6471,7286,7287,7392,8154,8165,8167,12607,15408,15410,15412,15414,15415,15416,20381,20498,25700,29539,29547,29548,38557,38558,38561",
+		}
+	]]--
+	
+
+local miSkinLoot = { 	[2934]=1,	[2318]=1,	[2319]=1,	[4234]=1,	[4304]=1,
+						[8170]=1,	[15423]=1,	[15417]=1,	[15422]=1,	[15419]=1,
+						[17012]=1, 	[5082]=1, 	[25699]=1,	[21887]=1,	[25649]=1,
+						[20499]=1,	[20498]=1,	[25700]=1,	[25707]=1,	[783]=1,
+						[4232]=1, 	[4235]=1, 	[8169]=1, 	[8171]=1, 	[7428]=1,
+						[8368]=1,	[8154]=1, 	[7287]=1, 	[8167]=1, 	[7286]=1,
+						[12607]=1,	[15416]=1,	[15415]=1,	[15414]=1,	[15412]=1,
+						[8165]=1,	[15408]=1,	[6470]=1, 	[6471]=1, 	[7392]=1,
+						[8165]=1,	[23107]=1,	[24189]=1,	[21929]=1,	[27859]=1,
+						[22575]=1,	[22790]=1,	[22785]=1,	[25813]=1,	[22789]=1,
+						[25708]=1,	[29548]=1,	[29539]=1,	[29547]=1,	[33567]=1,
+						[33568]=1,	[44128]=1,	[38557]=1,	[38558]=1,	[38561]=1,
+						-- Cataclysm (thanks Riamus)
+						[32470]=1,	-- Nethermine Flayer Hide
+						[52976]=1,	-- Savage Leather
+						[52977]=1,	-- Savage Leather Scraps
+						[67495]=1,	-- Strange Bloated Stomach
+						[52979]=1,	-- Blackened Dragonscale
+						[52980]=1,	-- Pristine Hide
+						[52982]=1,	-- Deepsea Scale
+					}
 
 -- cloth loot table using localization independant item IDs
--- Linen Cloth, Wool Cloth, Silk Cloth, Mageweave Cloth, Felcloth, Runecloth, Mooncloth, Netherweave
-local miClothLoot = { [2589]=1, [2592]=1, [4306]=1, [4338]=1, [14256]=1, [14047]=1, [14342]=1, [21877 ]=1 };
+-- Linen Cloth, Wool Cloth, Silk Cloth, Mageweave Cloth, Felcloth, Runecloth, Mooncloth, Netherweave, Frostweave Cloth, Embersilk Cloth
+local miClothLoot = {	[2589]=1, [2592]=1, [4306]=1, [4338]=1, [14256]=1, [14047]=1,
+						[14342]=1, [21877]=1, [33470]=1,
+						-- Cataclysm
+						[53010]=1, -- Embersilk Cloth
+					}
 
-local MI2_CollapseList = { [2725]=2725, [2728]=2725, [2730]=2725, [2732]=2725,
-                           [2734]=2725, [2735]=2725, [2738]=2725, [2740]=2725, [2742]=2725,
-                           [2745]=2725, [2748]=2725, [2749]=2725, [2750]=2725, [2751]=2725 }
+local MI2_CollapseList = {
+						[2725]=2725, [2728]=2725, [2730]=2725, [2732]=2725,
+                        [2734]=2725, [2735]=2725, [2738]=2725, [2740]=2725, [2742]=2725,
+                        [2745]=2725, [2748]=2725, [2749]=2725, [2750]=2725, [2751]=2725 }
 
 -- global MobInfo color constansts
 MI_Red = "|cffff1010"
@@ -145,6 +186,7 @@ MI2_QualityColor = { MI_Gray, MI_White, MI_Green, MI_ItemBlue, MI_Mageta, MI_Ora
 --    mobData.healthCur  :  current health of given unit
 --    mobData.manaCur    :  current mana of given unit
 --    mobData.manaMax    :  maximum mana for given unit
+--	  mobData.GUID		 :  unique 16-character hex string to identify mob [Speedwaystar]
 --
 -- Code Example:
 --    
@@ -260,7 +302,7 @@ function MI2_GetUnitBasedMobData( mobIndex, mobData, unitId )
 		mobData.healthText = "0/"..mobData.healthMax
 		return
 	end
-
+	
 	-- obtain unit specific values if unitId is given
 	if UnitHealthMax(unitId) == 100 then
 		mobData.healthCur = floor(mobPPP * UnitHealth(unitId) + 0.5)
@@ -275,13 +317,20 @@ function MI2_GetUnitBasedMobData( mobIndex, mobData, unitId )
 	end
 
 	local mobType = UnitClassification(unitId)
-	if mobType == "rare" or mobType == "elite" then
+	if mobType == "rare" then
 		mobData.mobType = 2
-	elseif mobType == "rareelite" or mobType == "worldboss" then
+	elseif mobType == "worldboss" then
 		mobData.mobType = 3
+	elseif mobType == "elite" then
+		mobData.mobType = 4
+	elseif mobType == "rareelite" then
+		mobData.mobType = 6
 	else
 		mobData.mobType = 1
 	end
+
+	-- globally unique identifier
+	mobData.GUID = UnitGUID(unitId)	
 end -- MI2_GetUnitBasedMobData()
 
 
@@ -919,6 +968,18 @@ function MI2_CheckAndCleanDatabases()
 
 	-- Initialise all database tables that do not exist
 	MobInfoDB = MobInfoDB or {}
+
+	-- Take MI3 database tables, instead of MI2 databas tables, if present
+	if MI3_CharTable then
+	 MI2_CharTable = MI3_CharTable
+	 MI2_ItemNameTable = MI3_ItemNameTable
+	 MI2_ZoneTable = MI3_ZoneTable
+	end
+
+	if MI3_XRefItemTable then
+	  MI2_XRefItemTable = MI3_XRefItemTable
+	end
+
 	MI2_CharTable = MI2_CharTable or { charCount = 0 }
 	MI2_ItemNameTable = MI2_ItemNameTable or {}
 	MI2_XRefItemTable = MI2_XRefItemTable or {}
@@ -939,7 +1000,7 @@ function MI2_CheckAndCleanDatabases()
 	if version  < 9 or subver < 1 then
 		MI2_UpdateDatabaseV8ToV9()
 	end
-	
+
 	-- for SV 1 remove all mobs without basic info (bi)
 	-- this cleans up after a bug that accidentally stored NPCs as mobs without bi
 	if subver == 1 then
@@ -1460,22 +1521,20 @@ end -- lootName2Copper()
 -----------------------------------------------------------------------------
 -- MI2_FindItemValue()
 --
--- Find the item value in either the Auctioneer database or in out own copy
--- of the Auctioneer item value database or by asking KC_Items
+-- 1. Find the item value in the ItemDataCache database or
+-- 2. Find the item value in the Auctioneer database or 
+-- 3. Find the itme value by asking KC_Items or
+-- 4. Find the item value in the Itemsync Database
+-- 5. Find in out own copy of the item value database (need update)
 --
 function MI2_FindItemValue( itemID )
+    -- chattext("ItemID = "..itemID)
 	local price = 0
 	
-	-- check if KC_Items is available and knows the price
-	if KC_Common and KC_Common.GetItemPrices then
-		price = KC_Common:GetItemPrices(itemID) or 0
-		
-	-- check if ItemsSync is installed and knows the price
-	elseif ISync and ISync.FetchDB then
-		price = tonumber( ISync:FetchDB(itemID, "price") or 0 )
-	end
-
-	if price == 0 and ItemDataCache then
+	-- Addons ItemdataCache, ItemSync are out of Date
+	-- Auctioneer v4 function is out of Date
+	--[[
+	if ItemDataCache then
 		price = (ItemDataCache.Get.ByID_selltovendor(itemID) or 0)
  	end
 
@@ -1483,12 +1542,28 @@ function MI2_FindItemValue( itemID )
 	if price == 0 and Auctioneer_GetVendorSellPrice then
 		price = Auctioneer_GetVendorSellPrice(itemID) or 0
 	end
-
+	
+        if price == 0 then
+	-- check if KC_Items is available and knows the price
+	        if KC_Common and KC_Common.GetItemPrices then
+			price = KC_Common:GetItemPrices(itemID) or 0
+		
+	-- check if ItemsSync is installed and knows the price
+		elseif ISync and ISync.FetchDB then
+			price = tonumber( ISync:FetchDB(itemID, "price") or 0 )
+		end
+	end
+	-- chattext("Preis extern = "..price)
+	]]
+	price = select(11, GetItemInfo(itemID)) or 0
+	-- chattext("Preis neu = "..price)
+		
 	-- check if built-in MobInfo price table knows the price
 	if price == 0 then
 		price = MI2_BasePrices[itemID] or 0
 	end
-
+	-- chattext("Preis intern = "..price)
+		
 	return price
 end -- MI2_FindItemValue()
 
@@ -1510,7 +1585,13 @@ local function GetLootId( slot )
 	return itemId
 end -- GetLootId()
 
-
+local function trueOrFalse(val)
+	if val then
+		return ("true")
+	else
+		return ("false")
+	end
+end
 -----------------------------------------------------------------------------
 -- MI2_RecordLootSlotData()
 --
@@ -1522,8 +1603,26 @@ local function MI2_RecordLootSlotData( mobIndex, mobData, slotID )
 	local skinningLoot = false
 
 	-- obtain loot slot data from WoW
-	-- abort loot processing upon finding clam meat (ie. a clam was opened)
+	-- ** as of 4.0.6 API GetLootSlotInfo() now returns nil values for slot 1 (only)
+	-- ** instead of details of coin looted as it did previousl.
+	-- ** unclear if this is a bug or by design
+	-- ** TODO: since we're no longer able to obtain coin details from loot slots,
+	-- ** find out how this is supposed to be done post 4.0.6 (if at all)
 	local texture, itemName, quantity, quality = GetLootSlotInfo( slotID )
+
+--[[
+	print(string.format("---Loot Slot %s---", slotID))
+	print(string.format("LootSlotIsItem %s, LootSlotIsCoin %s, texture %s, temName %s, quantity %s, quality %s",
+		LootSlotIsItem(slotID) and "true" or "false",
+		LootSlotIsCoin(slotID) and "true" or "false",
+		texture or "nil", itemName or "nil", quantity or "nil", quality or "nil"
+	))
+--]]
+
+	-- GetLootSlotInfo sanity check is required post 4.0.6
+	if not itemName then return false, false end
+	
+	-- abort loot processing upon finding clam meat (ie. a clam was opened)
 	if string.find(itemName, MI_TXT_CLAM_MEAT) ~= nil then  return false,true  end
 	local itemID = GetLootId( slotID )
 	quality = quality + 1
@@ -1571,7 +1670,6 @@ local function MI2_RecordLootSlotData( mobIndex, mobData, slotID )
 	elseif quality == 5 then
 		mobData.r5 = (mobData.r5 or 0) + 1
 	end
-	
 	return false,false
 end -- MI2_RecordLootSlotData()
 
@@ -1630,7 +1728,7 @@ function MI2_GetCorpseId( index )
 		corpseId = index
 		for slot = 1, numSlots do
 			local texture, item = GetLootSlotInfo( slot )
-			if item ~= "" then corpseId = corpseId..item end
+			if item then corpseId = corpseId..item end
 		end
 	end
 
@@ -1669,16 +1767,18 @@ end -- MI2_StoreCorpseId()
 -- Check if the corpse for the given mob index is being reopened.
 -- This is done by calculating a (hopefully) unique corpse ID and adding
 -- it to the list if it is a new corpse ID. 
+-- returns GUID if this corpse has been opened before, or Nil if it's a new one
 --
 function MI2_CheckForCorpseReopen( mobIndex )
-	local isReopen = false
-	local corpseId = MI2_GetCorpseId( mobIndex )
+	local isReopen = nil
+--	local corpseId = MI2_GetCorpseId( mobIndex )
+	local corpseId = UnitGUID("target") -- we're targetting the corpse, surely
 
 	-- check if corpse ID is already in the list
 	for index, recentCorpseId in pairs(MI2_RecentLoots) do
 		if recentCorpseId == corpseId then
 			MI2_CurrentCorpseIndex = index
-			isReopen = true
+			isReopen = corpseId
 			break
 		end
 	end
@@ -1895,8 +1995,8 @@ local function MI2_BuildExtraInfo( mobData, mobName, mobLevel )
 	local numLines = GameTooltip:NumLines()
 
 	for idx=2,numLines do
-		local ttLeft = getglobal( "GameTooltipTextLeft"..idx ):GetText()
-		local ttRight = getglobal( "GameTooltipTextRight"..idx ):GetText()
+		local ttLeft = _G["GameTooltipTextLeft"..idx]:GetText()
+		local ttRight = _G["GameTooltipTextRight"..idx]:GetText()
 		isExtraInfo = false
 
 		-- check for line with faction name
@@ -2072,21 +2172,36 @@ end -- MI2_BuildItemDataTooltip()
 --
 -- build class info text line for mob tooltip, class info includes the "dead"
 -- and the "skinnable" tags
+-- only used in custom tooltip, since built-in Blizzard tooltip already has
+-- most of this info
 --
 local function MI2_BuildMobClassInfo( mobData, isMob )
-	local creatureType = UnitCreatureType("mouseover")
-	mobData.class = UnitClassBase("mouseover")
+	local type 		= UnitCreatureType("mouseover") -- beast, demon, undead etc
+	local family 	= UnitCreatureFamily("mouseover") -- bear, wolf, wasp etc
+	local race 		= UnitRace("mouseover") -- tauren, orc, etc
+	local class 	= UnitClassBase("mouseover") -- warrior, mage etc
+	mobData.class = class
 	mobData.classInfo = nil
 	if UnitIsDead("mouseover") then
 		mobData.classInfo = CORPSE
 	elseif isMob then
-		if mobData.class and creatureType then
-			mobData.classInfo = creatureType..", "..mobData.class
+		if type then
+			mobData.classInfo = (mobData.classInfo or "")..type.." "
 		end
-		if mobData.lowHpAction then
-			mobData.classInfo = (mobData.classInfo or "").."  "..MI_LightRed..MI2_TXT_MOBRUNS
+		if type ~= "Critter" then
+			if race then
+				mobData.classInfo = (mobData.classInfo or "")..race.." "
+			end
+			if mobData.class then
+				mobData.classInfo = (mobData.classInfo or "")..class.." "
+			end
+			if family then
+				mobData.classInfo = (mobData.classInfo or "").."("..family..") "
+			end
+			if mobData.lowHpAction then
+				mobData.classInfo = (mobData.classInfo or "")..MI_LightRed..MI2_TXT_MOBRUNS
+			end
 		end
-	else
 	end 
 end -- MI2_BuildMobClassInfo
 
@@ -2135,20 +2250,18 @@ function MI2_BuildTooltipMob( mobName, mobLevel, unit, isMob )
 		levelInfo = "BOSS"
 		mobData.mobType = 3
 		mobLevel = 99
-	elseif mobData.mobType == 2 then
-		levelInfo = levelInfo.."+"
+	elseif mobData.mobType == 2 then                                                                   
+		levelInfo = levelInfo.."!"     -- rare
 	elseif mobData.mobType == 3 then
-		levelInfo = levelInfo.."++"
+		levelInfo = levelInfo.."++"    -- BOSS
+	elseif mobData.mobType == 4 then                                                                   
+		levelInfo = levelInfo.."+"     -- Elite
+	elseif mobData.mobType == 6 then                                                                   
+		levelInfo = levelInfo.."+!"    -- rare Elite
 	end
 
 	-- PTR Code
-	local col
-	if tocVersion >= 30200 then
-		col = GetQuestDifficultyColor(mobLevel)
-	else
-		col = GetDifficultyColor(mobLevel)
-	end
-		
+	local col = GetDifficultyColor(mobLevel)
 	mobData.levelInfo = MI2_ColorToText(col.r,col.g,col.b).."["..levelInfo.."] " 
 
 	-- build various content to be shown in the tooltip
@@ -2177,7 +2290,7 @@ end -- MI2_BuildTooltipMob()
 --
 function MI2_ScanSpellbook()
 	local spellBookPage = 2
-	
+
 	while spellBookPage > 0 do
 		local pageName, texture, offset, numSpells = GetSpellTabInfo( spellBookPage )
 		if pageName and offset and numSpells then

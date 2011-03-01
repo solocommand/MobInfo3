@@ -68,7 +68,7 @@ end -- MI2_SlashAction_AllOff
 --
 -- Register with the EARTH AddOn manager.
 --
-function MI2_RegisterWithAddonManagers()
+function MI2_RegisterWithAddonManagers(self)
 
 	-- register with myAddons manager
 	if ( myAddOnsFrame_Register ) then
@@ -92,7 +92,7 @@ function MI2_RegisterWithAddonManagers()
 				subtext = "v"..miVersionNo,
 				tooltip = MI_DESCRIPTION,
 				icon = "Interface\\CharacterFrame\\TemporaryPortrait-Monster",
-				callback = function(state) MI2_SlashParse("") end
+				callback = function(state) MI2_SlashParse("", self) end
 			}
 		)
 		if not MobInfoConfig.ShowMMButton then MobInfoConfig.ShowMMButton = 0 end
@@ -122,7 +122,7 @@ function MI2_RegisterWithAddonManagers()
 						difficulty = 1,
 						text = "MobInfo",
 						helptext = "",
-						callback = function(state) MI2_SlashParse("") end,
+						callback = function(state) MI2_SlashParse("", self) end,
 						feedback = function(state) end,
 						setup = { buttonText = MI_TXT_OPEN }
 					}
@@ -183,8 +183,8 @@ end  -- MI2_Slash_ClearDbConfirmed()
 -- Clear entire contents of MobInfo and MobHealth databases.
 -- Ask for confirmation before performing the clear operation.
 --
-function MI2_SlashAction_ClearHealthDb()
-	StaticPopupDialogs["MOBINFO_CONFIRMATION"].text = MI_TXT_CLR_ALL_CONFIRM.."'"..MI2_OPTIONS[this:GetName()].help.."' ?"
+function MI2_SlashAction_ClearHealthDb(self)
+	StaticPopupDialogs["MOBINFO_CONFIRMATION"].text = MI_TXT_CLR_ALL_CONFIRM.."'"..MI2_OPTIONS[self:GetName()].help.."' ?"
 	StaticPopupDialogs["MOBINFO_CONFIRMATION"].OnAccept = MI2_Slash_ClearDbConfirmed
 	MI2_DeleteMode = "HealthDb"
 	local dialog = StaticPopup_Show( "MOBINFO_CONFIRMATION", "")
@@ -197,8 +197,8 @@ end  -- MI2_SlashAction_ClearHealthDb()
 -- Clear entire contents of MobInfo and MobHealth databases.
 -- Ask for confirmation before performing the clear operation.
 --
-function MI2_SlashAction_ClearPlayerDb()
-	StaticPopupDialogs["MOBINFO_CONFIRMATION"].text = MI_TXT_CLR_ALL_CONFIRM.."'"..MI2_OPTIONS[this:GetName()].help.."' ?"
+function MI2_SlashAction_ClearPlayerDb(self)
+	StaticPopupDialogs["MOBINFO_CONFIRMATION"].text = MI_TXT_CLR_ALL_CONFIRM.."'"..MI2_OPTIONS[self:GetName()].help.."' ?"
 	StaticPopupDialogs["MOBINFO_CONFIRMATION"].OnAccept = MI2_Slash_ClearDbConfirmed
 	MI2_DeleteMode = "PlayerDb"
 	local dialog = StaticPopup_Show( "MOBINFO_CONFIRMATION", "")
@@ -211,8 +211,8 @@ end  -- MI2_SlashAction_ClearPlayerDb()
 -- Clear entire contents of MobInfo and MobHealth databases.
 -- Ask for confirmation before performing the clear operation.
 --
-function MI2_SlashAction_ClearMobDb()
-	StaticPopupDialogs["MOBINFO_CONFIRMATION"].text = MI_TXT_CLR_ALL_CONFIRM.."'"..MI2_OPTIONS[this:GetName()].help.."' ?"
+function MI2_SlashAction_ClearMobDb(self)
+	StaticPopupDialogs["MOBINFO_CONFIRMATION"].text = MI_TXT_CLR_ALL_CONFIRM.."'"..MI2_OPTIONS[self:GetName()].help.."' ?"
 	StaticPopupDialogs["MOBINFO_CONFIRMATION"].OnAccept = MI2_Slash_ClearDbConfirmed
 	MI2_DeleteMode = "MobDb"
 	local dialog = StaticPopup_Show( "MOBINFO_CONFIRMATION", "")
@@ -445,7 +445,11 @@ end  -- MI2_SlashInit()
 -- When used by the options dialog there is no need to actually update the
 -- dialog, which is indicated by the "updateOptions" parameter.
 --
-function MI2_SlashParse( msg )
+-- FrameXML/Chatframe.lua gives us back only the parameter msg
+-- ==> happens only when Mobinfo2 is called via command-line
+-- ==> Therefor the optional variable self now the second in the function (only used, when config-parameters are changed)
+--
+function MI2_SlashParse(msg, self)
 	-- extract option name and option argument from message string
 	local _, _, cmd, param = string.find( string.lower(msg), "([%w_]*)[ ]*([-%w]*)") 
 	
@@ -484,7 +488,7 @@ function MI2_SlashParse( msg )
 
 	-- now call the option handler for the more complex commands
 	if  optionData  then
-		MI2_OptionParse( optionName, optionData, param )
+		MI2_OptionParse( self, optionName, optionData, param )
 	end
 end -- of MI2_SlashParse()
 
@@ -500,7 +504,7 @@ end -- of MI2_SlashParse()
 --   * options that activate a special functionality represented by a
 --     handler function that must correspond to a specific naming convention
 --
-function MI2_OptionParse( optionName, optionData, param )
+function MI2_OptionParse( self, optionName, optionData, param )
 	-- handle the option according to its option type: its either a
 	-- switch being toggleg, a value being set, or a special action
 	if optionData.val then
@@ -531,13 +535,13 @@ function MI2_OptionParse( optionName, optionData, param )
 		end
 
 		-- some toggle switches control recording options which in turn controls events
-		MI2_InitializeEventTable()
+		MI2_InitializeEventTable(self)
 	else
 		-- special action commands have a corresponding handler function
 		local actionHandlerName = "MI2_SlashAction_"..optionName
-		local actionHandler = getglobal( actionHandlerName )
+		local actionHandler = _G[actionHandlerName]
 		if  actionHandler  then
-			actionHandler()
+			actionHandler(self)
 			updateOptions = true -- for AllOn, AllOff, etc.
 		end
 	end

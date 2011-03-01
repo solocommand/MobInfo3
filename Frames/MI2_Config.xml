@@ -115,14 +115,14 @@
 						<Offset>
 							<AbsDimension x="0" y="20" /></Offset></Anchor></Anchors>
 				<Scripts>
-					<OnClick>MI2_DoneButton_OnClick()</OnClick>
+					<OnClick>MI2_DoneButton_OnClick(self)</OnClick>
 				</Scripts>
 			</Button></Frames>
 		<Scripts>
 			<OnLoad>MI2_OptionsFrameOnLoad()</OnLoad>
 			<OnShow>MI2_OptionsFrameOnShow()</OnShow>
 			<OnHide>MI2_TooltipAnchor:SetFrameStrata( "LOW" ) MI2_UpdateAnchor()</OnHide>
-			<OnMouseDown>miConfig_OnMouseDown()</OnMouseDown>
-			<OnMouseUp>miConfig_OnMouseUp()</OnMouseUp>
+			<OnMouseDown>miConfig_OnMouseDown(self, button)</OnMouseDown>
+			<OnMouseUp>miConfig_OnMouseUp(self, button)</OnMouseUp>
 		</Scripts>
 	</Frame></Ui>

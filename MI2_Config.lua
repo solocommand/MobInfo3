@@ -41,7 +41,7 @@ function MI2_OptionsFrameOnLoad()
 	MI2_OptionsTabFrame.selectedTab = 5
 	PanelTemplates_UpdateTabs( MI2_OptionsTabFrame )
 
-	MI2_TxtOptionsTitle:SetText( "MobInfo "..miVersionNo )
+	MI2_TxtOptionsTitle:SetText( "MobInfo2 "..miVersionNo )
 	
 --	MI2_OptShowCombined:Disable()
 --	MI2_OptShowCombinedText:SetTextColor( 0.5,0.5,0.5 )
@@ -68,7 +68,7 @@ function MI2_UpdateOptions()
 	local index, value
 	for index, value in pairs(MI2_OPTIONS) do
 		local option = string.sub(index,8)
-		local control = getglobal(index)
+		local control = _G[index]
 		if  control and MobInfoConfig[option] then
 			if value.dd then
 				-- do nothing for dropdowns
@@ -90,13 +90,13 @@ end  -- MI2_UpdateOptions()
 -- Show help text for current hovered option in options dialog
 -- in the game tooltip window.
 --
-function MI2_ShowOptionHelpTooltip()
+function MI2_ShowOptionHelpTooltip(self)
 	GameTooltip_SetDefaultAnchor( GameTooltip, UIParent )
-	GameTooltip:SetText( MI_White..MI2_OPTIONS[this:GetName()].text )
+	GameTooltip:SetText( MI_White..MI2_OPTIONS[self:GetName()].text )
 	  
-	GameTooltip:AddLine(MI_Gold..MI2_OPTIONS[this:GetName()].help)
-	if MI2_OPTIONS[this:GetName()].info then
-		GameTooltip:AddLine(MI_Gold..MI2_OPTIONS[this:GetName()].info)
+	GameTooltip:AddLine(MI_Gold..MI2_OPTIONS[self:GetName()].help)
+	if MI2_OPTIONS[self:GetName()].info then
+		GameTooltip:AddLine(MI_Gold..MI2_OPTIONS[self:GetName()].info)
 	end
 	GameTooltip:Show()
 end -- of MI2_ShowOptionHelpTooltip()
@@ -115,24 +115,24 @@ function MI2_OptionsFrameOnShow()
 end  -- MI2_OptionsFrameOnShow()
 
 
-function miConfig_OnMouseDown()
-	if arg1 == "LeftButton" then
-		this:StartMoving()
+function miConfig_OnMouseDown(self, button)
+	if button == "LeftButton" then
+		self:StartMoving()
 	end
 end
 
 
-function miConfig_OnMouseUp()
-	if arg1 == "LeftButton" then
-		this:StopMovingOrSizing()
+function miConfig_OnMouseUp(self, button)
+	if button == "LeftButton" then
+		self:StopMovingOrSizing()
 	end
 end
 
 
-function MI2_DoneButton_OnClick()
+function MI2_DoneButton_OnClick(self)
 	HideUIPanel(MI2_OptionsFrame)
 	if MYADDONS_ACTIVE_OPTIONSFRAME then
-		if (MYADDONS_ACTIVE_OPTIONSFRAME == this) then
+		if (MYADDONS_ACTIVE_OPTIONSFRAME == self) then
 			ShowUIPanel(myAddOnsFrame)
 		end
 	end
@@ -188,11 +188,11 @@ end
 -- Event handler: one of the choices in the font selection box has been
 -- clicked. Store it as a config option.
 --
-function MI2_OptTargetFont_OnClick()
+function MI2_OptTargetFont_OnClick(self)
 	local oldID = UIDropDownMenu_GetSelectedID( MI2_OptTargetFont )
-	UIDropDownMenu_SetSelectedID( MI2_OptTargetFont, this:GetID())
-	if  oldID ~= this:GetID()  then
-		MobInfoConfig.TargetFont = this:GetID()
+	UIDropDownMenu_SetSelectedID( MI2_OptTargetFont, self:GetID())
+	if  oldID ~= self:GetID()  then
+		MobInfoConfig.TargetFont = self:GetID()
 		MI2_MobHealth_SetPos()
 	end
 end  -- MI2_OptTargetFont_OnClick()
@@ -204,11 +204,11 @@ end  -- MI2_OptTargetFont_OnClick()
 -- Event handler: one of the choices in the items quality dropdown has been
 -- clicked. Store it as a config option.
 --
-function MI2_OptItemsQuality_OnClick()
+function MI2_OptItemsQuality_OnClick(self)
 	local oldID = UIDropDownMenu_GetSelectedID( MI2_OptItemsQuality )
-	UIDropDownMenu_SetSelectedID( MI2_OptItemsQuality, this:GetID())
-	if  oldID ~= this:GetID()  then
-		MobInfoConfig.ItemsQuality = this:GetID()
+	UIDropDownMenu_SetSelectedID( MI2_OptItemsQuality, self:GetID())
+	if  oldID ~= self:GetID()  then
+		MobInfoConfig.ItemsQuality = self:GetID()
 	end
 end  -- MI2_OptItemsQuality_OnClick()
 
@@ -219,11 +219,11 @@ end  -- MI2_OptItemsQuality_OnClick()
 -- Event handler: one of the choices in the tooltip mode dropdown has been
 -- clicked. Store it as a config option.
 --
-function MI2_OptTooltipMode_OnClick()
+function MI2_OptTooltipMode_OnClick(self)
 	local oldID = UIDropDownMenu_GetSelectedID( MI2_OptTooltipMode )
-	UIDropDownMenu_SetSelectedID( MI2_OptTooltipMode, this:GetID())
-	if  oldID ~= this:GetID()  then
-		MobInfoConfig.TooltipMode = this:GetID()
+	UIDropDownMenu_SetSelectedID( MI2_OptTooltipMode, self:GetID())
+	if  oldID ~= self:GetID()  then
+		MobInfoConfig.TooltipMode = self:GetID()
 	end
 	MI2_SetupTooltip()
 end  -- MI2_OptTooltipMode_OnClick()
@@ -235,15 +235,15 @@ end  -- MI2_OptTooltipMode_OnClick()
 -- Initialize a dropdown list with entries that are retrieved from the
 -- localization info.
 --
-function MI2_DropDown_Initialize()
-	if string.sub(this:GetName(),-6) ~= "Button" then return end
+function MI2_DropDown_Initialize(self)
+	if self:GetObjectType() ~= "Button" then return end
 	
-	local dropDownName = string.sub(this:GetName(),1,-7)
+	local dropDownName = self:GetName()
 	local choice = MI2_OPTIONS[dropDownName].choice1
 	local count = 1
 
 	while choice do
-		local info = { text = choice, value = count, func = getglobal(dropDownName.."_OnClick") }
+		local info = { text = choice, value = count, func = _G[dropDownName.."_OnClick"] }
 		UIDropDownMenu_AddButton( info )
 		count = count + 1
 		choice = MI2_OPTIONS[dropDownName]["choice"..count] 
