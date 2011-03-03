@@ -17,6 +17,10 @@ miVersionNo = '@project-version@'
 -- and now continue to update and improve the united result.
 --
 
+-- library pointers
+local libPeriodicTable = LibStub("LibPeriodicTable-3.1")
+
+
 -- global vars
 MI2_Debug = 0  -- 0=no debug info, 1=activate debug info
 MI2_DebugItems = 0  -- 0=no item debug info, 1=show item ID and item value in tooltip
@@ -35,77 +39,20 @@ local MI2_CACHE_SIZE = 30
 local GetSpellName = GetSpellName or GetSpellBookItemName
 local GetDifficultyColor = GetDifficultyColor or GetQuestDifficultyColor
 
+
 -- PTR code
 local _, _, _, tocVersion = GetBuildInfo()
 
--- skinning loot table using localization independant item IDs:
---    Ruined Leather Scraps, Light Leather, Medium Leather, Heavy Leather, Thick Leather, Rugged Leather
---    Chimera Leather, Devilsaur Leather, Frostsaber Leather, Warbear Leather, Core Leather, Thin Kodo Leather, Crystal Infused Leather
---    Knothide Leather Scraps, Knothide Leather, Broken Silithid Chitin, Silithid Chitin, Fel Scales, Fel Hide
---    Light Hide, Medium Hide, Heavy Hide, Thick Hide, Rugged Hide, Shadowcat Hide, Thick Wolfhide
---    Scorpid Scale, Red Whelp Scales, Turtle Scales, Black Whelp Scales, Brilliant Chromatic Scale
---    Black Dragonscale, Blue Dragonscale, Red Dragonscale, Green Dragonscale, Worn Dragonscale, Heavy Scorpid Scale
---    deviate scale, perfect deviate scale, green whelp scale, worn dragonscale
---    Shadow Draenite, Crystalline Fragments, Flame Spessarite
---    Thick Clefthoof Leather, Nether Dragonscales, Cobra Scales, Wind Scales
---    Borean Leather Scraps, Borean Leather, Arctic Fur, Icy Dragonscale, Nerubian Chitin, Jormungar Scale
---    Savage Leather, Savage Leather SCraps, Strange Bloated Stomach, Blackened Dragonscale,
---    Pristine Hide, Deepsea Scale,
--- 
--- skinning loot items that you only get with herbalism:
---    Zangar Caps, Mote of Life, Ancient Lichen, Felweed, Small Mushroom, Terocone 
---
--- removed "Shiny Fish Scales" ([17057]=1,) because its also normal loot
---
-
--- consider using LibPeriodicTable-3.1 since it is frequently updated
---[[
-lpt = {
-		["Tradeskill.Gather.Skinning"]="783,2318,2319,2934,4232,4234,4235,4304,4371,4375,4377,4404,6470,6471,7286,7287,7392,8154,8165,8167,8169,8170,8171,8973,11512,12366,12607,12731,15408,15410,15412,15414,15415,15416,15417,15419,17012,17057,18947,19767,19768,20498,20499,20500,20501,21222,21877,21887,23677,25418,25649,25699,25700,25707,25708,29539,29547,29548,32470,33567,33568,35229,36729,38557,38558,38561,42510,42542,44128,44687,52976,52977,52979,52980,52982,56053,57058,57059,57068,57070,60392,60393,67495",
-		
-		["Tradeskill.Gather.Herbalism"]="765,785,2447,2449,2450,2452,2453,3355,3356,3357,3358,3369,3818,3819,3820,3821,4625,5056,8153,8831,8836,8838,8839,8845,8846,11514,13463,13464,13465,13466,13467,13468,18222,18223,22575,22576,22710,22785,22786,22787,22788,22789,22790,22791,22792,22793,22794,22795,23331,23987,23988,24401,25315,25813,27859,29453,32468,32506,33452,35229,35947,36901,36903,36904,36905,36906,36907,36908,37704,37921,39516,39970,52329,52983,52984,52985,52986,52987,52988,54627,54628,54630,58962,63122,67357",
-
-		-- or these
-		["Tradeskill.Mat.ByType.Cloth"]="2589,2592,4306,4338,14047,14256,14342,21845,21877,24271,24272,33470,41593,41594,41595",
-		["Tradeskill.Mat.ByType.Gem"]="12799,818,12800,11382,1206,774,1705,1210,12361,9262,1529,12363,11754,12364,7910,3864,19774,7909,32227,32228,32229,32230,32231,32249,36784,36917,36918,36920,36921,36923,36924,36926,36927,36929,36930,36932,36933,41266,41334,42225",
-		["Tradeskill.Mat.ByType.Herb"]="3819,8153,3355,22789,2452,8838,3820,765,22787,8831,13466,2447,22792,22791,13465,22793,785,3357,3356,3358,13467,8846,3369,13464,3821,8845,22788,4625,22785,22794,3818,2449,22786,13463,2453,2450,8839,8836,22790,19726,13468,36901,36902,36903,36904,36905,36906,36907,36908,37921",
-		["Tradeskill.Mat.ByType.Hide"]="783,4231,4232,4233,4235,4236,4461,7428,8169,8171,8172,8368,15407,25707",
-		["Tradeskill.Mat.ByType.Leather"]="2318,2319,2934,4234,4304,5082,8170,12810,15417,15419,15422,15423,17012,19767,19768,21887,23793,25649,25699,25708,33568,38425,44128",
-		["Tradeskill.Mat.ByType.Ore"]="23426,23427,23424,23425,2775,2776,18562,2770,3858,2771,11370,2772,7911,10620,36909,36910,36912",
-		["Tradeskill.Mat.ByType.Scale"]="5784,5785,6470,6471,7286,7287,7392,8154,8165,8167,12607,15408,15410,15412,15414,15415,15416,20381,20498,25700,29539,29547,29548,38557,38558,38561",
-		}
-	]]--
-	
-
-local miSkinLoot = { 	[2934]=1,	[2318]=1,	[2319]=1,	[4234]=1,	[4304]=1,
-						[8170]=1,	[15423]=1,	[15417]=1,	[15422]=1,	[15419]=1,
-						[17012]=1, 	[5082]=1, 	[25699]=1,	[21887]=1,	[25649]=1,
-						[20499]=1,	[20498]=1,	[25700]=1,	[25707]=1,	[783]=1,
-						[4232]=1, 	[4235]=1, 	[8169]=1, 	[8171]=1, 	[7428]=1,
-						[8368]=1,	[8154]=1, 	[7287]=1, 	[8167]=1, 	[7286]=1,
-						[12607]=1,	[15416]=1,	[15415]=1,	[15414]=1,	[15412]=1,
-						[8165]=1,	[15408]=1,	[6470]=1, 	[6471]=1, 	[7392]=1,
-						[8165]=1,	[23107]=1,	[24189]=1,	[21929]=1,	[27859]=1,
-						[22575]=1,	[22790]=1,	[22785]=1,	[25813]=1,	[22789]=1,
-						[25708]=1,	[29548]=1,	[29539]=1,	[29547]=1,	[33567]=1,
-						[33568]=1,	[44128]=1,	[38557]=1,	[38558]=1,	[38561]=1,
-						-- Cataclysm (thanks Riamus)
-						[32470]=1,	-- Nethermine Flayer Hide
-						[52976]=1,	-- Savage Leather
-						[52977]=1,	-- Savage Leather Scraps
-						[67495]=1,	-- Strange Bloated Stomach
-						[52979]=1,	-- Blackened Dragonscale
-						[52980]=1,	-- Pristine Hide
-						[52982]=1,	-- Deepsea Scale
-					}
-
--- cloth loot table using localization independant item IDs
--- Linen Cloth, Wool Cloth, Silk Cloth, Mageweave Cloth, Felcloth, Runecloth, Mooncloth, Netherweave, Frostweave Cloth, Embersilk Cloth
-local miClothLoot = {	[2589]=1, [2592]=1, [4306]=1, [4338]=1, [14256]=1, [14047]=1,
-						[14342]=1, [21877]=1, [33470]=1,
-						-- Cataclysm
-						[53010]=1, -- Embersilk Cloth
-					}
+local miClamContents = {
+	["4655"] =	"Giant Clam Meat",
+	["5503"] =	"Clam Meat",
+	["5504"] =	"Tangy Clam Meat",
+	["7974"] =	"Zesty Clam Meat",
+	["15924"] =	"Soft-shelled Clam Meat",
+	["24477"] =	"Jaggal Clam Meat",
+	["36782"] =	"Succulent Clam Meat",
+	["62791"] =	"Blood Shrimp",
+}
 
 local MI2_CollapseList = {
 						[2725]=2725, [2728]=2725, [2730]=2725, [2732]=2725,
@@ -129,7 +76,6 @@ MI_LightGreen = "|cff60ff60"
 MI_LightRed = "|cffff5050"
 MI_SubWhite = "|cffbbbbbb"
 MI2_QualityColor = { MI_Gray, MI_White, MI_Green, MI_ItemBlue, MI_Mageta, MI_Orange, MI_Red }
-
 
 -----------------------------------------------------------------------------
 -- MI2_GetMobData( mobName, mobLevel [, unitId] )
@@ -1487,11 +1433,11 @@ end
 
 
 -----------------------------------------------------------------------------
--- lootName2Copper()
+-- MI2_LootName2Copper()
 --
 -- Turns a lootname like 1 Gold 3 Silver 40 Copper to total copper 10340
 --
-function lootName2Copper(item)
+function MI2_LootName2Copper(item)
 	local i = 0
 	local g,s,c = 0
 	local money = 0
@@ -1515,7 +1461,7 @@ function lootName2Copper(item)
 	end
 
 	return money
-end -- lootName2Copper()
+end -- MI2_LootName2Copper()
 
 
 -----------------------------------------------------------------------------
@@ -1569,11 +1515,72 @@ end -- MI2_FindItemValue()
 
 
 -----------------------------------------------------------------------------
--- GetLootId()
+-- MI2_ItemIsGatheredBy(itemID, prof)
+--
+-- Returns true if the itemID is normally gathered by the professions
+-- or false if not. Errors from LibPeriodicTable are hopefully trapped.
+--
+local function MI2_ItemIsGatheredBy(itemID, prof)
+	if itemID > 0 then
+		local ok, result = pcall ( libPeriodicTable.ItemInSet, self, itemID, "Tradeskill.Gather."..prof )
+		if ok then
+			return result
+		else
+			print(result, " in function IM2_ItemIsGatheredBy")
+		end
+	end
+	return false
+end -- MI2_ItemIsGatheredBy
+
+
+-----------------------------------------------------------------------------
+-- MI2_ItemIsGatherable(itemID)
+--
+-- Returns true if the itemID is normally gathered by one of the professions
+-- which is capable of processing corpses (skinning, mining, herbalism)
+-- or false if not
+-- TODO: we need data for Engineering
+--
+local function MI2_ItemIsGatherable(itemID)
+	local i, prof
+	local gatheringProfessions = { "Skinning", "Mining", "Herbalism", }
+	if itemID > 0 then
+		for i, prof in pairs( gatheringProfessions ) do
+			ok, result = pcall(MI2_ItemIsGatheredBy, itemID, prof)
+			if ok then
+				if result then return result end
+			else
+				print(result, " in function MI2_ItemIsGatherable")
+			end
+		end
+	end
+	return false
+end -- MI2_ItemIsGatherable
+
+
+-----------------------------------------------------------------------------
+-- MI2_ItemIsTradeMat(itemID)
+--
+--
+local function MI2_ItemIsTradeMat(itemID,mat)
+	if itemID > 0 then
+		local ok, result = pcall (libPeriodicTable.ItemInSet, self, itemID,"Tradeskill.Mat.ByType."..mat)
+		if ok then
+			return result
+		else
+			print(result, " in function IM2_ItemIsTradeMat")
+		end
+	end
+	return false
+end	-- MI2_ItemIsTradeMat
+
+
+-----------------------------------------------------------------------------
+-- MI2_GetLootId()
 --
 -- get loot ID code for given loot slot number, also return link object
 --
-local function GetLootId( slot )
+local function MI2_GetLootId( slot )
 	local itemId = 0
 	local link = GetLootSlotLink( slot )
 
@@ -1583,24 +1590,19 @@ local function GetLootId( slot )
 	end
 
 	return itemId
-end -- GetLootId()
+end -- MI2_GetLootId()
 
-local function trueOrFalse(val)
-	if val then
-		return ("true")
-	else
-		return ("false")
-	end
-end
 -----------------------------------------------------------------------------
 -- MI2_RecordLootSlotData()
 --
 -- Record the data for one loot item. This function is called in turn for
 -- each loot item in the loot window.
--- Retiurns 2 values : isSkinningItem, isClamMeat
+-- Returns IM_ITEM_SOURCE.value
 --
 local function MI2_RecordLootSlotData( mobIndex, mobData, slotID )
-	local skinningLoot = false
+
+
+	local isGatheredLoot, isFromItem = false
 
 	-- obtain loot slot data from WoW
 	-- ** as of 4.0.6 API GetLootSlotInfo() now returns nil values for slot 1 (only)
@@ -1609,6 +1611,7 @@ local function MI2_RecordLootSlotData( mobIndex, mobData, slotID )
 	-- ** TODO: since we're no longer able to obtain coin details from loot slots,
 	-- ** find out how this is supposed to be done post 4.0.6 (if at all)
 	local texture, itemName, quantity, quality = GetLootSlotInfo( slotID )
+	local itemID = MI2_GetLootId(slotID) -- returns 0 if not an item
 
 --[[
 	print(string.format("---Loot Slot %s---", slotID))
@@ -1619,58 +1622,67 @@ local function MI2_RecordLootSlotData( mobIndex, mobData, slotID )
 	))
 --]]
 
-	-- GetLootSlotInfo sanity check is required post 4.0.6
-	if not itemName then return false, false end
-	
 	-- abort loot processing upon finding clam meat (ie. a clam was opened)
-	if string.find(itemName, MI_TXT_CLAM_MEAT) ~= nil then  return false,true  end
-	local itemID = GetLootId( slotID )
-	quality = quality + 1
-
+	-- TODO: doesn't handle blood shrimp or anything else without "clam meat" in the string
+	-- TODO: replace with an ID list check from LibPeriodicTable
+	if miClamContents[itemID] then
+		isFromItem = true
+		
 	-- identify and count money loot, make sure it does not get counted as an item
-	if LootSlotIsCoin(slotID) then
-		local money = lootName2Copper(itemName)
+	-- TODO: this doesn't work post 4.0.6
+		
+	elseif LootSlotIsCoin(slotID) then
+		local money = MI2_LootName2Copper(itemName)
 		mobData.copper = (mobData.copper or 0) + money
 		quality = -1
+
+	-- since 4.0.6, GetLootSlotInfo can return nil values so we need a sanity check
+	elseif LootSlotIsItem(slotID) and (itemID > 0) and itemName then
+
+		-- we have an item
+		quality = quality + 1
+		
+		-- record item data within Mob database and in global item table
+		-- update cross reference table accordingly
+		if MobInfoConfig.SaveItems == 1 and quality >= MobInfoConfig.ItemsQuality then
+			if not mobData.itemList then mobData.itemList = {} end
+			mobData.itemList[itemID] = (mobData.itemList[itemID] or 0) + quantity
+			MI2_ItemNameTable[itemID] = itemName.."/"..quality
+			MI2_AddItemToXRefTable( mobIndex, itemName, quantity )
+		
+	
+			-- check for gathered loot i.e. mining, skinning, herbalising a mob
+			if slotID == 1 and MI2_ItemIsGatherable(itemID) then
+				isGatheredLoot = true
+
+			else
+				-- update % for each quality type
+				local itemValue = MI2_FindItemValue( itemID )
+				mobData.itemValue = (mobData.itemValue or 0) + itemValue
+				-- try to skip quest items in quality overview
+				if itemValue < 1 and quality == 2 then quality = -1 end
+				-- cloth drop counter
+				if MI2_ItemIsTradeMat(itemID, "Cloth") then
+					mobData.clothCount = (mobData.clothCount or 0) + miClothLoot[itemID]
+				end
+				
+				-- record loot item quality (if enabled)
+				if quality == 1 then 
+					mobData.r1 = (mobData.r1 or 0) + 1
+				elseif quality == 2 then
+					mobData.r2 = (mobData.r2 or 0) + 1
+				elseif quality == 3 then
+					mobData.r3 = (mobData.r3 or 0) + 1
+				elseif quality == 4 then
+					mobData.r4 = (mobData.r4 or 0) + 1
+				elseif quality == 5 then
+					mobData.r5 = (mobData.r5 or 0) + 1
+				end
+			end
+		end
 	end
 
-	-- record item data within Mob database and in global item table
-	-- update cross reference table accordingly
-	if MobInfoConfig.SaveItems == 1 and quality >= MobInfoConfig.ItemsQuality then
-		if not mobData.itemList then mobData.itemList = {} end
-		mobData.itemList[itemID] = (mobData.itemList[itemID] or 0) + quantity
-		MI2_ItemNameTable[itemID] = itemName.."/"..quality
-		MI2_AddItemToXRefTable( mobIndex, itemName, quantity )
-	end
-
-	-- exit right here if this is a skinning loot window
-	if slotID == 1 and miSkinLoot[itemID] then  return true,false  end
-
-	if LootSlotIsItem(slotID) then
-		local itemValue = MI2_FindItemValue( itemID )
-		mobData.itemValue = (mobData.itemValue or 0) + itemValue
-		-- try to skip quest items in quality overview
-		if itemValue < 1 and quality == 2 then quality = -1 end
-	end
-
-	-- cloth drop couter
-	if miClothLoot[itemID] then
-		mobData.clothCount = (mobData.clothCount or 0) + miClothLoot[itemID]
-	end
-
-	-- record loot item quality (if enabled)
-	if quality == 1 then 
-		mobData.r1 = (mobData.r1 or 0) + 1
-	elseif quality == 2 then
-		mobData.r2 = (mobData.r2 or 0) + 1
-	elseif quality == 3 then
-		mobData.r3 = (mobData.r3 or 0) + 1
-	elseif quality == 4 then
-		mobData.r4 = (mobData.r4 or 0) + 1
-	elseif quality == 5 then
-		mobData.r5 = (mobData.r5 or 0) + 1
-	end
-	return false,false
+	return isGatheredLoot, isFromItem
 end -- MI2_RecordLootSlotData()
 
 
@@ -1682,18 +1694,19 @@ end -- MI2_RecordLootSlotData()
 -- or not. Examples for "not" are: skinning, clam loot
 --
 function MI2_RecordAllLootItems( mobIndex, numItems )
-	local skinningLoot = false
+	local gatheredLoot = false
 	local mobData = MI2_FetchMobData( mobIndex )
 	if not mobData then return end
 
 	-- iterate through all loot slots and record data for each item
 	for slotID = 1, numItems, 1 do
-		local skin, clam = MI2_RecordLootSlotData( mobIndex, mobData, slotID )
-		if clam then return end
-		skinningLoot = skinningLoot or skin
+		local isGathered, isFromMob = MI2_RecordLootSlotData( mobIndex, mobData, slotID )
+		if isFromItem then return end -- looting non-mob i.e. a clam or lockbox
+		gatheredLoot = gatheredLoot or isGathered
 	end -- for loop
 
-	if skinningLoot then
+	-- TODO: everything is treated as skinning loot atm
+	if gatheredLoot then
 		mobData.skinCount = (mobData.skinCount or 0) + 1
 	else
 		-- update loot and empty loot counter
@@ -1791,7 +1804,6 @@ function MI2_CheckForCorpseReopen( mobIndex )
 	return isReopen
 end -- MI2_CheckForCorpseReopen()
 
-
 -----------------------------------------------------------------------------
 -- MI2_GetLootItem()
 --
@@ -1820,38 +1832,46 @@ end -- MI2_GetLootItem()
 -- instead of looted counter.
 --
 local function MI2_AddOneItemToList( list, mobData, itemID, amount )
-	local text, color, quality = MI2_GetLootItem( itemID )
+	if itemID > 0 then
+		local text, color, quality = MI2_GetLootItem( itemID )
 
-	if miSkinLoot[itemID] or miClothLoot[itemID] then
-		text = "* "..text
-	else
-		-- apply item quality and item name filter
-		local filtered = (quality==1) and (MobInfoConfig.ShowIGrey == 0)
-					or (quality==2) and (MobInfoConfig.ShowIWhite == 0)
-					or (quality==3) and (MobInfoConfig.ShowIGreen == 0)
-					or (quality==4) and (MobInfoConfig.ShowIBlue == 0)
-					or (quality>4) and (MobInfoConfig.ShowIPurple == 0)
-		if not filtered and MobInfoConfig.ItemFilter ~= ""  then
-			filtered = string.find( string.lower(text), string.lower(MobInfoConfig.ItemFilter) ) == nil
+		if MI2_ItemIsGatheredBy(itemID, "Skinning") then
+			text = "* "..text
+		elseif MI2_ItemIsGatheredBy(itemID, "Mining") then
+			text = "# "..text
+		elseif MI2_ItemIsGatheredBy(itemID, "Herbalism") then
+			text = "+ "..text
+		elseif MI2_ItemIsTradeMat(itemID, "Cloth") then
+			text = "~ "..text
+		else
+			-- apply item quality and item name filter
+			local filtered = (quality==1) and (MobInfoConfig.ShowIGrey == 0)
+						or (quality==2) and (MobInfoConfig.ShowIWhite == 0)
+						or (quality==3) and (MobInfoConfig.ShowIGreen == 0)
+						or (quality==4) and (MobInfoConfig.ShowIBlue == 0)
+						or (quality>4) and (MobInfoConfig.ShowIPurple == 0)
+			if not filtered and MobInfoConfig.ItemFilter ~= ""  then
+				filtered = string.find( string.lower(text), string.lower(MobInfoConfig.ItemFilter) ) == nil
+			end
+			if filtered then return end
 		end
-		if filtered then return end
-	end
 
-	-- shorten item text to keep tooltip reasonably small
-	if string.len(text) > 35 then
-		text = string.sub(text,1,34).."..."
-	end
-	text = color..text..": "..amount
+		-- shorten item text to keep tooltip reasonably small
+		if string.len(text) > 35 then
+			text = string.sub(text,1,34).."..."
+		end
+		text = color..text..": "..amount
 
-	local totalAmount = mobData.loots
-	if miSkinLoot[itemID] then
-		totalAmount = mobData.skinCount
+		local totalAmount = mobData.loots
+		if MI2_ItemIsGatheredBy(itemID,"Skinning") then
+			totalAmount = mobData.skinCount
+		end
+		if totalAmount and totalAmount > 0 then
+			text = text.." ("..ceil(amount/totalAmount*100).."%)"  
+		end
+		
+		table.insert( list, text )
 	end
-	if totalAmount and totalAmount > 0 then
-		text = text.." ("..ceil(amount/totalAmount*100).."%)"  
-	end
-	
-	table.insert( list, text )
 end -- MI2_AddOneItemToList
 
 
@@ -1875,7 +1895,7 @@ local function MI2_BuildItemsList( mobData )
 	-- build a sortable list of item IDs
 	for itemID, amount in pairs(mobData.itemList) do
 		ok = false
-		if miSkinLoot[itemID] or miClothLoot[itemID] then 
+		if MI2_ItemIsGatheredBy(itemID,"Skinning") or MI2_ItemIsTradeMat(itemID,"Cloth") then
 			if MobInfoConfig.ShowClothSkin == 1 then
 				ok = true
 			end
