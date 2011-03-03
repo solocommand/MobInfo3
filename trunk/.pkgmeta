@@ -1,1 +1,10 @@
 ﻿package-as: MobInfo2
+
+license-output: LICENSE.txt
+
+manual-changelog: CHANGES.txt
+
+externals:
+    Libs/LibStub: svn://svn.wowace.com/wow/libstub/mainline/tags/1.0
+    Libs/LibPeriodicTable-3.1: svn://svn.wowace.com/wow/libperiodictable-3-1/mainline/trunk/LibPeriodicTable-3.1
+    Libs/PeriodicTable-Tradeskill: svn://svn.wowace.com/wow/libperiodictable-3-1/mainline/trunk/LibPeriodicTable-3.1-Tradeskill

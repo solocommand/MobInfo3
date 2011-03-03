@@ -330,7 +330,7 @@ local function MI2_UpdateGameTooltip( mobData, mobName, unit )
 		GameTooltipTextLeft2:SetText( GameTooltipTextLeft2:GetText().." "..MI_LightRed..MI2_TXT_MOBRUNS )
 	end
 	if mobData.GUID then
-		GameTooltip:AddLine(MI_Gray..mobData.GUID)
+		-- GameTooltip:AddLine(MI_Gray..mobData.GUID)
 	end
 	GameTooltip:Show()
 end -- MI2_UpdateGameTooltip
