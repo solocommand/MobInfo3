@@ -1663,7 +1663,7 @@ local function MI2_RecordLootSlotData( mobIndex, mobData, slotID )
 				if itemValue < 1 and quality == 2 then quality = -1 end
 				-- cloth drop counter
 				if MI2_ItemIsTradeMat(itemID, "Cloth") then
-					mobData.clothCount = (mobData.clothCount or 0) + miClothLoot[itemID]
+					mobData.clothCount = (mobData.clothCount or 0) + 1
 				end
 				
 				-- record loot item quality (if enabled)
