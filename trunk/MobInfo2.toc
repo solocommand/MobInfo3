@@ -21,11 +21,13 @@ Libs\LibPeriodicTable-3.1\LibPeriodicTable-3.1-Tradeskill\LibPeriodicTable-3.1-T
 #@end-no-lib-strip@
 
 ## localization files
-Localization\localization.en.lua 
 Localization\localization.de.lua 
-Localization\localization.fr.lua 
-Localization\localization.tw.lua 
+Localization\localization.en.lua 
 Localization\localization.es.lua
+Localization\localization.fr.lua 
+Localization\localization.pl.lua 
+Localization\localization.ru.lua 
+Localization\localization.tw.lua 
 
 # main AddOns source code
 MobInfo2.lua

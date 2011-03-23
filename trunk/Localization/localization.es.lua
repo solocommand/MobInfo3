@@ -6,6 +6,8 @@
 -- updates kindly submitted by AlbertQ
 -- updates kindly submitted by maqjav
 
+MI2_Locale = GetLocale()
+
 if ( MI2_Locale == "esES" ) then
 --if ( MI2_Locale == "deDE" ) then
 

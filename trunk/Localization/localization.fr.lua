@@ -7,8 +7,9 @@
 -- updated by Tieum (ui.worldofwar.net forum user)
 --
 
+MI2_Locale = GetLocale()
+
 if ( MI2_Locale == "frFR" ) then
---if ( MI2_Locale == "deDE" ) then
 
 MI2_SpellSchools = { Arcanes="ar", Feu="fi", Givre="fr", Ombre="sh", ["Sacr\195\169"]="ho", Nature="na",
 					 arcanes="ar", feu="fi", givre="fr", ombre="sh", ["sacr\195\169"]="ho", nature="na" }
