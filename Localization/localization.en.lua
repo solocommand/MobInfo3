@@ -8,7 +8,6 @@
 MI2_Locale = GetLocale()
 
 if ( MI2_Locale == "enUS" or MI2_Locale == "enGB" ) then
---if ( MI2_Locale == "deDE" ) then
 
 MI2_SpellSchools = { Arcane="ar", Fire="fi", Frost="fr", Shadow="sh", Holy="ho", Nature="na" }
 

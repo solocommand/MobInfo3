@@ -6,6 +6,8 @@
 -- updated for v3.46 by Avai@亞雷戈斯
 --
 
+MI2_Locale = GetLocale()
+
 if ( MI2_Locale == "zhTW" or MI2_Locale == "zhCN" ) then
 
 MI2_SpellSchools		= { ["祕法"]="ar", ["火焰"]="fi", ["冰霜"]="fr", ["暗影"]="sh", ["神聖"]="ho", ["自然"]="na" } 

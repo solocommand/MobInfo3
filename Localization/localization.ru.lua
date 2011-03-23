@@ -1,9 +1,8 @@
 -- 
--- Default English Localisation for MobInfo
+-- Russian Localisation for MobInfo
 --
 -- created by Stephan Wilms 
 --
-
 
 MI2_Locale = GetLocale()
 

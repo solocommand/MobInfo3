@@ -1,8 +1,12 @@
 -- 
--- Default English Localisation for MobInfo
+-- Polish Localisation for MobInfo
 --
 -- created by Stephan Wilms 
 --
+
+MI2_Locale = GetLocale()
+
+if ( MI2_Locale == "plPL" ) then
 
 MI2_SpellSchools = { Arcane="ar", Fire="fi", Frost="fr", Shadow="sh", Holy="ho", Nature="na" }
 
@@ -394,3 +398,4 @@ MI2_OPTIONS["MI2_OptionsTabFrameTab4"] =
 MI2_OPTIONS["MI2_OptionsTabFrameTab5"] = 
 { text = "General"; help = "General options for the MobInfo AddOn"; }
 
+end

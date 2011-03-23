@@ -2,6 +2,7 @@
 -- MobInfo.lua
 --
 -- Main module of MobInfo-2 AddOn
+
 miVersionNo = '@project-version@'
 --
 -- MobInfo-2 is a World of Warcraft AddOn that provides you with useful
@@ -16,6 +17,7 @@ miVersionNo = '@project-version@'
 -- I have "inhereted" MobInfo from Dizzarian and MobHealth-2 from Wyv
 -- and now continue to update and improve the united result.
 --
+-- $header: MobInfo2.lua @project-version@ @file-revision@ @file-date-iso@ @file-author@ ext $
 
 -- library pointers
 local libPeriodicTable = LibStub("LibPeriodicTable-3.1")

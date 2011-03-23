@@ -4,8 +4,9 @@
 -- created by Skeeve
 --
 
+MI2_Locale = GetLocale()
+
 if ( MI2_Locale == "deDE" ) then
---if ( false ) then
 
 MI2_SpellSchools = { Arkan="ar", Feuer="fi", Frost="fr", Schatten="sh", Heilig="ho", Natur="na" }
 
