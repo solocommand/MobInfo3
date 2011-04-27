@@ -1,4 +1,4 @@
-﻿## Interface: 40000
+﻿## Interface: 40100
 ## Title: MobInfo2
 ## Title-zhTW: MobInfo 怪物資料庫
 ## Version: @project-version@
