@@ -22,6 +22,27 @@ miVersionNo = '@project-version@'
 -- library pointers
 local libPeriodicTable = LibStub("LibPeriodicTable-3.1")
 
+-- metadata
+local ADDON_NAME	= ...
+local ADDON_TITLE  	= GetAddOnMetadata(ADDON_NAME, "Title")
+local ADDON_VERSION	= GetAddOnMetadata(ADDON_NAME, "Version")
+local ADDON_AUTHOR	= GetAddOnMetadata(ADDON_NAME, "Author")
+local ADDON_NOTES	= GetAddOnMetadata(ADDON_NAME, "Notes")
+
+-- debugging
+local GREEN = "|cFF33FF99"
+local debugging = true
+local _, fh = DEFAULT_CHAT_FRAME:GetFont()
+local fontHeight = math.ceil(fh) -- avoid bizarre -ve numbers
+local icon = "\124TInterface\\Addons\\" .. ADDON_NAME .. "\\icon:" .. fontHeight .. "\124t"
+local HEADER = string.format("%s%s%s|r : ", GREEN, icon, ADDON_NAME)
+function printf(...)
+	if (DEFAULT_CHAT_FRAME) then
+		DEFAULT_CHAT_FRAME:AddMessage(HEADER .. string.format(...))
+	end
+end
+function printfd(...) if (debugging) then printf("DEBUG: ", ...) end end
+function serialize(...) return DataDumper(...) end
 
 -- global vars
 MI2_Debug = 0  -- 0=no debug info, 1=activate debug info
@@ -243,42 +264,48 @@ end -- MI2_GetMobDataFromMobInfo()
 --
 function MI2_GetUnitBasedMobData( mobIndex, mobData, unitId )
     -- get mobs PPP and calculate max health (can be done without unitId)
-	local mobPPP = MobHealth_PPP(mobIndex)
-	if mobPPP <= 0 then mobPPP = 1 end
-	mobData.healthMax = floor(mobPPP * 100 + 0.5)
+
 	if not unitId then 
-		mobData.healthText = "0/"..mobData.healthMax
-		return
-	end
-	
-	-- obtain unit specific values if unitId is given
-	if UnitHealthMax(unitId) == 100 then
-		mobData.healthCur = floor(mobPPP * UnitHealth(unitId) + 0.5)
+		mobData.healthText = "0/"..(mobData.healthMax or "???")
 	else
-		mobData.healthCur = UnitHealth(unitId)
-	end
-	mobData.manaCur = UnitMana( unitId )
-	mobData.manaMax = UnitManaMax( unitId )
-	mobData.healthText = mobData.healthCur.."/"..mobData.healthMax
-	if mobData.manaMax > 0 then
-		mobData.manaText = mobData.manaCur.."/"..mobData.manaMax
-	end
+	--[[
+		local mobPPP = MobHealth_PPP(mobIndex)
+		if mobPPP <= 0 then mobPPP = 1 end
+		mobData.healthMax = floor(mobPPP * 100 + 0.5)
+		-- obtain unit specific values if unitId is given
+		if UnitHealthMax(unitId) == 100 then
+			mobData.healthCur = floor(mobPPP * UnitHealth(unitId) + 0.5)
+		else
+			mobData.healthCur = UnitHealth(unitId)
+		end
+	--]]
+		--  why is the above necessary? just use values from the server
+		mobData.healthMax = UnitHealthMax( unitId )
+		mobData.healthCur = UnitHealth( unitId )
+		mobData.manaCur = UnitMana( unitId )
+		mobData.manaMax = UnitManaMax( unitId )
 
-	local mobType = UnitClassification(unitId)
-	if mobType == "rare" then
-		mobData.mobType = 2
-	elseif mobType == "worldboss" then
-		mobData.mobType = 3
-	elseif mobType == "elite" then
-		mobData.mobType = 4
-	elseif mobType == "rareelite" then
-		mobData.mobType = 6
-	else
-		mobData.mobType = 1
-	end
+		mobData.healthText = mobData.healthCur.."/"..mobData.healthMax
+		if mobData.manaMax > 0 then
+			mobData.manaText = mobData.manaCur.."/"..mobData.manaMax
+		end
 
-	-- globally unique identifier
-	mobData.GUID = UnitGUID(unitId)	
+		local mobType = UnitClassification(unitId)
+		if mobType == "rare" then
+			mobData.mobType = 2
+		elseif mobType == "worldboss" then
+			mobData.mobType = 3
+		elseif mobType == "elite" then
+			mobData.mobType = 4
+		elseif mobType == "rareelite" then
+			mobData.mobType = 6
+		else
+			mobData.mobType = 1
+		end
+
+		-- globally unique identifier
+		mobData.GUID = UnitGUID(unitId)	
+	end
 end -- MI2_GetUnitBasedMobData()
 
 
@@ -371,14 +398,13 @@ function MI2_DecodeBasicMobData( mobInfo, mobData, mobIndex )
 
 	-- decode mob basic info: loots, empty loots, experience, cloth count, money looted, item value looted, mob type
 	if mobInfo.bi then
-		local _,_,lt,el,cp,iv,cc,_,mt,sc = string.find( mobInfo.bi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
+		local _,_,lt,el,cp,iv,cc,_,mt = string.find( mobInfo.bi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
 		mobData.loots		= tonumber(lt)
 		mobData.emptyLoots	= tonumber(el)
-		mobData.clothCount	= tonumber(cc)
 		mobData.copper		= tonumber(cp)
 		mobData.itemValue	= tonumber(iv)
+		mobData.clothCount	= tonumber(cc)
 		mobData.mobType		= tonumber(mt)
-		mobData.skinCount	= tonumber(sc)
 	end
 
 	if mobData.mobType and mobData.mobType > 10 then
@@ -401,7 +427,7 @@ function MI2_DecodeMobLocation( mobInfo, mobData, mobIndex )
 	end
 
 	if mobInfo.ml then
-		local a,b,x1,y1,x2,y2,c,z = string.find( mobInfo.ml, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
+		local _,_,x1,y1,x2,y2,c,z = string.find( mobInfo.ml, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)//(%d*)")
 		mobData.location = {}
 		mobData.location.x1	= tonumber(x1)
 		mobData.location.y1	= tonumber(y1)
@@ -431,7 +457,7 @@ function MI2_DecodeQualityOverview( mobInfo, mobData, mobIndex )
 	end
 
 	if mobInfo.qi then
-		local a,b,r1,r2,r3,r4,r5 = string.find( mobInfo.qi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
+		local _,_,r1,r2,r3,r4,r5 = string.find( mobInfo.qi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
 		mobData.r1	= tonumber(r1)
 		mobData.r2	= tonumber(r2)
 		mobData.r3	= tonumber(r3)
@@ -455,16 +481,16 @@ function MI2_DecodeCharData( mobInfo, mobData, playerName, mobIndex )
 	if mobIndex then
 		mobInfo = MobInfoDB[mobIndex]
 	end
-
+	--printf("MI2_DecodeCharData '%s' for playerName '%s'",mobInfo[playerName] or 'nil', playerName or 'nil')
 	if mobInfo[playerName] then
-		local a,b,kl,mind,maxd,dps,xp = string.find( mobInfo[playerName], "(%d*)/(%d*)/(%d*)/(%d*)/*(%d*)")
+		local _,_,kl,mind,maxd,dps,xp,sc =
+				string.find( mobInfo[playerName], "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
 		mobData.kills		= tonumber(kl)
 		mobData.minDamage	= tonumber(mind)
 		mobData.maxDamage	= tonumber(maxd)
 		mobData.dps			= tonumber(dps)
-		if xp then
-			mobData.xp		= tonumber(xp)
-		end
+		mobData.xp			= tonumber(xp)
+		mobData.skinCount	= tonumber(sc)
 	end
 end -- MI2_DecodeCharData
 
@@ -482,7 +508,8 @@ function MI2_DecodeResists( mobInfo, mobData, mobIndex )
 	end
 
 	if mobInfo.re then
-		local a,b,ar,arHits,fi,fiHits,fr,frHits,ho,hoHits,na,naHits,sh,shHits = string.find( mobInfo.re, "(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)")
+		local _,_,ar,arHits,fi,fiHits,fr,frHits,ho,hoHits,na,naHits,sh,shHits =
+				string.find( mobInfo.re, "(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)")
 		mobData.resists = {}
 		mobData.resists.ar	= tonumber(ar)
 		mobData.resists.fi	= tonumber(fi)
@@ -548,12 +575,23 @@ local function MI2_StoreBasicInfo( mobIndex, mobData )
 		mobType = nil
 	end
 
-	local basicInfo = (mobData.loots or "").."/"..(mobData.emptyLoots or "").."/"..(mobData.copper or "").."/"..(mobData.itemValue or "").."/"..(mobData.clothCount or "").."//"..(mobType or "").."/"..(mobData.skinCount or "")
-	if basicInfo ~= "///////" then
+	local basicInfo =
+			(mobData.loots or "").."/"..
+			(mobData.emptyLoots or "").."/"..
+			(mobData.copper or "").."/"..
+			(mobData.itemValue or "").."/"..
+			(mobData.clothCount or "").."/"..
+			(mobType or "")
+	if basicInfo ~= "/////" then
 		mobInfo.bi = basicInfo
 	end
 
-	local qualityInfo = (mobData.r1 or "").."/"..(mobData.r2 or "").."/"..(mobData.r3 or "").."/"..(mobData.r4 or "").."/"..(mobData.r5 or "")
+	local qualityInfo =
+			(mobData.r1 or "").."/"..
+			(mobData.r2 or "").."/"..
+			(mobData.r3 or "").."/"..
+			(mobData.r4 or "").."/"..
+			(mobData.r5 or "")
 	if qualityInfo ~= "////" then
 		mobInfo.qi = qualityInfo
 	end
@@ -573,8 +611,13 @@ function MI2_StoreLocation( mobIndex, loc )
 		MobInfoDB[mobIndex] = mobInfo
 	end
 
-	local locationInfo = (loc.x1 or "").."/"..(loc.y1 or "").."/"..(loc.x2 or "").."/"..(loc.y2 or "").."//"..(loc.z or "")
-	if locationInfo ~= "/////" then
+	local locationInfo =
+			(loc.x1 or "").."/"..
+			(loc.y1 or "").."/"..
+			(loc.x2 or "").."/"..
+			(loc.y2 or "").."//"..
+			(loc.z or "")
+	if locationInfo ~= "////" then
 		mobInfo.ml = locationInfo
 	end
 end -- MI2_StoreLocation()
@@ -592,10 +635,17 @@ local function MI2_StoreCharData( mobIndex, mobData, playerName )
 		MobInfoDB[mobIndex] = mobInfo
 	end
 
-	local playerInfo = (mobData.kills or "").."/"..(mobData.minDamage or "").."/"..(mobData.maxDamage or "").."/"..(mobData.dps or "").."/"..(mobData.xp or "")
-	if playerInfo ~= "////" then
-		mobInfo[playerName] = playerInfo
+	local playerInfo =
+			(mobData.kills or "").."/"..
+			(mobData.minDamage or "").."/"..
+			(mobData.maxDamage or "").."/"..
+			(mobData.dps or "").."/"..
+			(mobData.xp or "").."/"..
+			(mobData.skinCount or "")
+	if playerInfo ~= "/////" then
+		mobInfo[playerName] = playerInfo		
 	end
+	--printf("playerInfo = %s, playerName = %s", playerInfo or 'nil', playerName or 'nil')
 end -- MI2_StoreCharData()
 
 
@@ -1160,7 +1210,8 @@ function MI2_RecordLocationAndType( mobIndex, mobData )
 		MI2_StoreLocation( mobIndex, mobData.location )
 	end
 
-	if MobInfoConfig.SaveBasicInfo == 1 and mobData.mobType > 1 then
+--	if MobInfoConfig.SaveBasicInfo == 1 and mobData.mobType > 1 then
+	if MobInfoConfig.SaveBasicInfo == 1 then
 		MI2_StoreBasicInfo( mobIndex, mobData )
 	end
 end -- MI2_RecordLocationAndType()
@@ -1191,6 +1242,7 @@ end -- MI2_RecordLowHpAction()
 function MI2_RecordKill( creatureName, xp )
 	-- try to find DB index for mob that was killed
 	local mobIndex
+	--printf("MI2_Target.name = %s, creatureName = %s", MI2_Target.name or 'nil', creatureName or 'nil')
 	if MI2_Target.name == creatureName then
 		mobIndex = MI2_Target.mobIndex
 	elseif MI2_LastTargetIdx and string.find(MI2_LastTargetIdx, creatureName) then
@@ -1205,6 +1257,7 @@ function MI2_RecordKill( creatureName, xp )
 		end
 	end
 
+	--printf("Saving kill record for %s", mobIndex or 'nil')
 	if MobInfoConfig.SaveCharData == 1 and mobIndex then
 		local mobData = MI2_FetchMobData( mobIndex )
 		if xp then
@@ -1214,6 +1267,7 @@ function MI2_RecordKill( creatureName, xp )
 			mobData.kills = (mobData.kills or 0) + 1
 			mobData.killed = 1
 		end
+		--printf("Storing now")
 		MI2_StoreCharData( mobIndex, mobData, MI2_PlayerName )
 	end
 end -- MI2_RecordKill()
@@ -1528,7 +1582,7 @@ local function MI2_ItemIsGatheredBy(itemID, prof)
 		if ok then
 			return result
 		else
-			print(result, " in function IM2_ItemIsGatheredBy")
+			printf(result, " in function IM2_ItemIsGatheredBy")
 		end
 	end
 	return false
@@ -1552,7 +1606,7 @@ local function MI2_ItemIsGatherable(itemID)
 			if ok then
 				if result then return result end
 			else
-				print(result, " in function MI2_ItemIsGatherable")
+				printf(result, " in function MI2_ItemIsGatherable")
 			end
 		end
 	end
@@ -1570,7 +1624,7 @@ local function MI2_ItemIsTradeMat(itemID,mat)
 		if ok then
 			return result
 		else
-			print(result, " in function IM2_ItemIsTradeMat")
+			printf(result, " in function IM2_ItemIsTradeMat")
 		end
 	end
 	return false
@@ -1726,7 +1780,7 @@ function MI2_RecordAllLootItems( mobIndex, numItems )
 	end
 end -- MI2_RecordAllLootItems()
 
-
+--[[
 -----------------------------------------------------------------------------
 -- MI2_GetCorpseId()
 --
@@ -1749,7 +1803,7 @@ function MI2_GetCorpseId( index )
 
 	return corpseId
 end -- MI2_GetCorpseId()
-
+]]--
 
 -----------------------------------------------------------------------------
 -- MI2_StoreCorpseId()
