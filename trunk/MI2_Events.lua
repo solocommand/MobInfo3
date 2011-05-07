@@ -142,9 +142,11 @@ local function MI2_EventLootOpened(self, event, ...)
 
 	-- check if this is a known corpse being reopened, reopened corpses
 	-- can (and must) be ignored because they have already been fully processed
+	-- question: why doesn't this trigger on skinning?
+	-- answer: it does
 	local isReopen = MI2_CheckForCorpseReopen(mobIndex)
 	if isReopen then
-		print(MI_LightBlue.."<MI2> "..MI_White.."Drop data from reopened "..UnitClass("target").." is tainted and will not be recorded. "..MI_Gray.."(id "..isReopen..")")
+		printf(MI_LightBlue.."<MI2> "..MI_White.."Drop data from reopened "..UnitClass("target").." is tainted and will not be recorded. "..MI_Gray.."(id "..isReopen..")")
 		return
 	end	
 
@@ -152,7 +154,7 @@ local function MI2_EventLootOpened(self, event, ...)
 	MI2_RecordAllLootItems( mobIndex, numItems )
 end -- MI2_EventLootOpened()
 
-
+--[[
 -----------------------------------------------------------------------------
 -- MI2_EventLootSlotCleared()
 --
@@ -163,7 +165,7 @@ end -- MI2_EventLootOpened()
 local function MI2_EventLootSlotCleared(self, event, ...)
 	MI2_StoreCorpseId( MI2_GetCorpseId(MI2_Target.mobIndex) )
 end -- MI2_EventLootSlotCleared
-
+--]]
 
 -----------------------------------------------------------------------------
 -- MI2_EventLootClosed()
@@ -411,6 +413,26 @@ end -- MI2_EventPetSpell()
 
 
 -----------------------------------------------------------------------------
+-- MI2_EventSpellSucceeded()
+--
+-- handler for event "UNIT_SPELLCAST_SUCCEEDED"
+-- checks for successfully skinning, mining, or herbalizing a mob
+--
+local function MI2_EventSpellSucceeded(self, event, caster, spell, _, _, id)
+	local SKINNING_ID = 32678
+	
+	if caster=="player" and MI2_Target.mobIndex then
+	-- the spell was cast on a mob... is it a tradeskill?
+--		printfd("%s successfully cast %s (id: %s)", caster or 'nil',spell or 'nil',id or 'nil')
+		
+
+		return
+	end
+end -- MI2_EventSpellPeriodic()
+
+
+
+-----------------------------------------------------------------------------
 -- MI2_EventSpellPeriodic()
 --
 -- handler for event "CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE"
@@ -533,23 +555,10 @@ end -- MI2_EventHostileDeath()
 -- This is the replacement for the no longer functioning "MI2_EventHostileDeath()"
 --
 local function MI2_UnitDied(self, event, ...)
-
---midebug("event="..tostring(event)..", a1="..tostring(arg1)..", a2="..tostring(arg2)..", a3="..tostring(arg3)..", a4="..tostring(arg4))
---midebug("event="..tostring(event)..", a5="..tostring(arg5)..", a6="..tostring(arg6)..", a7="..tostring(arg7)..", a8="..tostring(arg8))
-	--local arg1, arg2, arg3, arg4, arg5, arg6, arg8 = ...
-	--if arg1 ~= nil then chattext("timestamp  = "..arg1) end
-	--if arg2 ~= nil then chattext("event      = "..arg2) end
-	--if arg3 ~= nil then chattext("sourceGUID = "..arg3) end
-	--if arg4 ~= nil then chattext("sourceName = "..arg4) end
-	--if arg5 ~= nil then chattext("sourceFlags= "..arg5) end
-	--if arg6 ~= nil then chattext("destGUID   = "..arg6) end
-	--if arg7 ~= nil then chattext("destName   = "..arg7) end
-	--if arg8 ~= nil then chattext("destFlags  = "..arg8) end
-	local creatureName = select(7, ...)
-	if creatureName then
-		--chattext("Kreatur = "..creatureName)
-		if MI2_DebugEvents > 0 then midebug("no XP kill event: mob="..creatureName ) end
-		MI2_RecordKill( creatureName )
+	local timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName = ...
+	if destName then
+		--printf("no XP kill event: mob="..destName )
+		MI2_RecordKill( destName )
 	end
 
 end -- MI2_UnitDied()
@@ -566,8 +575,7 @@ function MI2_EventCreatureDiesXP(self, event, ...)
 	local message = ...
 	local s,e, creature, xp = string.find( message, MI2_ChatScanStrings[3] )
 	if creature and xp then
-		if MI2_DebugEvents > 0 then midebug("kill event with XP: mob="..creature..", xp="..xp ) end
---		midebug("kill event with XP: mob="..creature..", xp="..xp..message )
+		--printf("kill event with XP: mob="..creature..", xp="..xp..message )
 		MI2_RecordKill( creature, tonumber(xp) )
 	end
 end -- MI2_EventCreatureDiesXP()
@@ -684,11 +692,11 @@ end -- MI2_OnEvent
 --
 function MI2_OnCombatLogEvent(self, event, ...)	
 	--midebug("event="..event..", a1="..(arg1 or "<nil>")..", a2="..(arg2 or "<nil>")..", a3="..(arg3 or "<nil>")..", a4="..(arg4 or "<nil>"))
-	-- local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags = ...
+	-- local timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags = ...
 	local event = select(2, ...)
 	local realEvent = MI2_EventHandlers[event]
 	if realEvent then
-		--chattext("Subevent = "..event)
+		--printf("Subevent = "..event)
 		realEvent.f(self, event, ...)
 	end
 end -- MI2_OnCombatLogEvent
@@ -719,7 +727,7 @@ function MI2_OnLoad(self)
 		CHAT_MSG_MONSTER_EMOTE = {f=MI2_EventMonsterEmote, basic=1},
 		LOOT_OPENED = {f=MI2_EventLootOpened, basic=1, items=1},
 		LOOT_CLOSED = {f=MI2_EventLootClosed, basic=1, items=1},
-		LOOT_SLOT_CLEARED = {f=MI2_EventLootSlotCleared, basic=1, items=1},
+--		LOOT_SLOT_CLEARED = {f=MI2_EventLootSlotCleared, basic=1, items=1},
 		CHAT_MSG_SPELL_SELF_BUFF = {f=MI2_EventSelfBuff, basic=1, items=1},
 
 		CHAT_MSG_COMBAT_HOSTILE_DEATH = {f=MI2_EventHostileDeath, char=1},
@@ -729,6 +737,7 @@ function MI2_OnLoad(self)
 		CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE = {f=MI2_EventSpellPeriodic, char=1},
 		CHAT_MSG_COMBAT_PET_HITS = {f=MI2_EventPetMelee, char=1},
 		CHAT_MSG_SPELL_PET_DAMAGE = {f=MI2_EventPetSpell, char=1},
+		UNIT_SPELLCAST_SUCCEEDED ={f=MI2_EventSpellSucceeded, char=1}
 	}
 
 	-- event table modification required for chinese localisation
