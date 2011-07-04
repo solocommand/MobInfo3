@@ -398,13 +398,28 @@ function MI2_DecodeBasicMobData( mobInfo, mobData, mobIndex )
 
 	-- decode mob basic info: loots, empty loots, experience, cloth count, money looted, item value looted, mob type
 	if mobInfo.bi then
-		local _,_,lt,el,cp,iv,cc,_,mt = string.find( mobInfo.bi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
+--[[
+		local _,_,lt,el,cp,iv,cc,_,mt,sc = string.find( mobInfo.bi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
 		mobData.loots		= tonumber(lt)
 		mobData.emptyLoots	= tonumber(el)
+		mobData.clothCount	= tonumber(cc)
 		mobData.copper		= tonumber(cp)
 		mobData.itemValue	= tonumber(iv)
-		mobData.clothCount	= tonumber(cc)
 		mobData.mobType		= tonumber(mt)
+		mobData.skinCount	= tonumber(sc)
+--]]
+		local a,b,lt,el,cp,iv,cc,c,mt,sc = string.find( mobInfo.bi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
+		a = tonumber(a)
+		b = tonumber(b)
+		c = tonumber(c)
+		mobData.loots		= tonumber(lt)
+		mobData.emptyLoots	= tonumber(el)
+		mobData.clothCount	= tonumber(cc)
+		mobData.copper		= tonumber(cp)
+		mobData.itemValue	= tonumber(iv)
+		mobData.mobType		= tonumber(mt)
+		mobData.skinCount	= tonumber(sc)
+		print(mobInfo.bi, a,b,lt,el,cp,iv,cc,c,mt,sc)
 	end
 
 	if mobData.mobType and mobData.mobType > 10 then
@@ -427,7 +442,7 @@ function MI2_DecodeMobLocation( mobInfo, mobData, mobIndex )
 	end
 
 	if mobInfo.ml then
-		local _,_,x1,y1,x2,y2,c,z = string.find( mobInfo.ml, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)//(%d*)")
+		local a,b,x1,y1,x2,y2,c,z = string.find( mobInfo.ml, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
 		mobData.location = {}
 		mobData.location.x1	= tonumber(x1)
 		mobData.location.y1	= tonumber(y1)
@@ -457,7 +472,7 @@ function MI2_DecodeQualityOverview( mobInfo, mobData, mobIndex )
 	end
 
 	if mobInfo.qi then
-		local _,_,r1,r2,r3,r4,r5 = string.find( mobInfo.qi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
+		local a,b,r1,r2,r3,r4,r5 = string.find( mobInfo.qi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
 		mobData.r1	= tonumber(r1)
 		mobData.r2	= tonumber(r2)
 		mobData.r3	= tonumber(r3)
@@ -483,8 +498,7 @@ function MI2_DecodeCharData( mobInfo, mobData, playerName, mobIndex )
 	end
 	--printf("MI2_DecodeCharData '%s' for playerName '%s'",mobInfo[playerName] or 'nil', playerName or 'nil')
 	if mobInfo[playerName] then
-		local _,_,kl,mind,maxd,dps,xp,sc =
-				string.find( mobInfo[playerName], "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
+		local a,b,kl,mind,maxd,dps,xp = string.find( mobInfo[playerName], "(%d*)/(%d*)/(%d*)/(%d*)/*(%d*)")
 		mobData.kills		= tonumber(kl)
 		mobData.minDamage	= tonumber(mind)
 		mobData.maxDamage	= tonumber(maxd)
@@ -508,8 +522,7 @@ function MI2_DecodeResists( mobInfo, mobData, mobIndex )
 	end
 
 	if mobInfo.re then
-		local _,_,ar,arHits,fi,fiHits,fr,frHits,ho,hoHits,na,naHits,sh,shHits =
-				string.find( mobInfo.re, "(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)")
+		local a,b,ar,arHits,fi,fiHits,fr,frHits,ho,hoHits,na,naHits,sh,shHits = string.find( mobInfo.re, "(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)")
 		mobData.resists = {}
 		mobData.resists.ar	= tonumber(ar)
 		mobData.resists.fi	= tonumber(fi)
@@ -575,23 +588,12 @@ local function MI2_StoreBasicInfo( mobIndex, mobData )
 		mobType = nil
 	end
 
-	local basicInfo =
-			(mobData.loots or "").."/"..
-			(mobData.emptyLoots or "").."/"..
-			(mobData.copper or "").."/"..
-			(mobData.itemValue or "").."/"..
-			(mobData.clothCount or "").."/"..
-			(mobType or "")
-	if basicInfo ~= "/////" then
+	local basicInfo = (mobData.loots or "").."/"..(mobData.emptyLoots or "").."/"..(mobData.copper or "").."/"..(mobData.itemValue or "").."/"..(mobData.clothCount or "").."//"..(mobType or "").."/"..(mobData.skinCount or "")
+	if basicInfo ~= "///////" then
 		mobInfo.bi = basicInfo
 	end
 
-	local qualityInfo =
-			(mobData.r1 or "").."/"..
-			(mobData.r2 or "").."/"..
-			(mobData.r3 or "").."/"..
-			(mobData.r4 or "").."/"..
-			(mobData.r5 or "")
+	local qualityInfo = (mobData.r1 or "").."/"..(mobData.r2 or "").."/"..(mobData.r3 or "").."/"..(mobData.r4 or "").."/"..(mobData.r5 or "")
 	if qualityInfo ~= "////" then
 		mobInfo.qi = qualityInfo
 	end
@@ -611,13 +613,8 @@ function MI2_StoreLocation( mobIndex, loc )
 		MobInfoDB[mobIndex] = mobInfo
 	end
 
-	local locationInfo =
-			(loc.x1 or "").."/"..
-			(loc.y1 or "").."/"..
-			(loc.x2 or "").."/"..
-			(loc.y2 or "").."//"..
-			(loc.z or "")
-	if locationInfo ~= "////" then
+	local locationInfo = (loc.x1 or "").."/"..(loc.y1 or "").."/"..(loc.x2 or "").."/"..(loc.y2 or "").."//"..(loc.z or "")
+	if locationInfo ~= "/////" then
 		mobInfo.ml = locationInfo
 	end
 end -- MI2_StoreLocation()
@@ -635,14 +632,8 @@ local function MI2_StoreCharData( mobIndex, mobData, playerName )
 		MobInfoDB[mobIndex] = mobInfo
 	end
 
-	local playerInfo =
-			(mobData.kills or "").."/"..
-			(mobData.minDamage or "").."/"..
-			(mobData.maxDamage or "").."/"..
-			(mobData.dps or "").."/"..
-			(mobData.xp or "").."/"..
-			(mobData.skinCount or "")
-	if playerInfo ~= "/////" then
+	local playerInfo = (mobData.kills or "").."/"..(mobData.minDamage or "").."/"..(mobData.maxDamage or "").."/"..(mobData.dps or "").."/"..(mobData.xp or "")
+	if playerInfo ~= "////" then
 		mobInfo[playerName] = playerInfo		
 	end
 	--printf("playerInfo = %s, playerName = %s", playerInfo or 'nil', playerName or 'nil')
@@ -1749,6 +1740,8 @@ end -- MI2_RecordLootSlotData()
 -- Return to the caller whether this loot window represents real mob loot
 -- or not. Examples for "not" are: skinning, clam loot
 --
+
+-- this is getting called TWICE on random occasions
 function MI2_RecordAllLootItems( mobIndex, numItems )
 	local gatheredLoot = false
 	local mobData = MI2_FetchMobData( mobIndex )
@@ -1766,7 +1759,9 @@ function MI2_RecordAllLootItems( mobIndex, numItems )
 		mobData.skinCount = (mobData.skinCount or 0) + 1
 	else
 		-- update loot and empty loot counter
+		print("before = ",mobData.loots or 'nil')
 		mobData.loots = (mobData.loots or 0) + 1
+		print("after = ",mobData.loots)
 		if numItems < 1 then
 			mobData.emptyLoots = (mobData.emptyLoots or 0) + 1
 		end
