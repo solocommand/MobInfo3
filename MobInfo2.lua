@@ -398,28 +398,18 @@ function MI2_DecodeBasicMobData( mobInfo, mobData, mobIndex )
 
 	-- decode mob basic info: loots, empty loots, experience, cloth count, money looted, item value looted, mob type
 	if mobInfo.bi then
---[[
-		local _,_,lt,el,cp,iv,cc,_,mt,sc = string.find( mobInfo.bi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
-		mobData.loots		= tonumber(lt)
-		mobData.emptyLoots	= tonumber(el)
-		mobData.clothCount	= tonumber(cc)
-		mobData.copper		= tonumber(cp)
-		mobData.itemValue	= tonumber(iv)
-		mobData.mobType		= tonumber(mt)
-		mobData.skinCount	= tonumber(sc)
---]]
 		local a,b,lt,el,cp,iv,cc,c,mt,sc = string.find( mobInfo.bi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
-		a = tonumber(a)
-		b = tonumber(b)
-		c = tonumber(c)
-		mobData.loots		= tonumber(lt)
-		mobData.emptyLoots	= tonumber(el)
-		mobData.clothCount	= tonumber(cc)
-		mobData.copper		= tonumber(cp)
-		mobData.itemValue	= tonumber(iv)
-		mobData.mobType		= tonumber(mt)
-		mobData.skinCount	= tonumber(sc)
-		print(mobInfo.bi, a,b,lt,el,cp,iv,cc,c,mt,sc)
+		a = tonumber(a) or 0
+		b = tonumber(b) or 0
+		mobData.loots		= tonumber(lt) or 0
+		mobData.emptyLoots	= tonumber(el) or 0
+		mobData.copper		= tonumber(cp) or 0
+		mobData.itemValue	= tonumber(iv) or 0
+		mobData.clothCount	= tonumber(cc) or 0
+		c = tonumber(c) or 0
+		mobData.mobType		= tonumber(mt) or 0
+		mobData.skinCount	= tonumber(sc) or 0
+		--printf("bi: %s, loots %d, empty %d, copper %d, value %d, cloth %d, type %d, skins %d", mobInfo.bi, mobData.loots, mobData.emptyLoots, mobData.copper, mobData.itemValue, mobData.clothCount, mobData.mobType, mobData.skinCount)
 	end
 
 	if mobData.mobType and mobData.mobType > 10 then
@@ -444,11 +434,11 @@ function MI2_DecodeMobLocation( mobInfo, mobData, mobIndex )
 	if mobInfo.ml then
 		local a,b,x1,y1,x2,y2,c,z = string.find( mobInfo.ml, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
 		mobData.location = {}
-		mobData.location.x1	= tonumber(x1)
-		mobData.location.y1	= tonumber(y1)
-		mobData.location.x2	= tonumber(x2)
-		mobData.location.y2	= tonumber(y2)
-		mobData.location.c	= tonumber(c)
+		mobData.location.x1	= tonumber(x1) or 0
+		mobData.location.y1	= tonumber(y1) or 0
+		mobData.location.x2	= tonumber(x2) or 0
+		mobData.location.y2	= tonumber(y2) or 0
+		mobData.location.c	= tonumber(c) or 0
 		mobData.location.z	= (tonumber(z) or 0)
 		if not mobData.location.x1 or not mobData.location.x2 or 
 				not mobData.location.y1 or not mobData.location.y2 or 
@@ -473,11 +463,11 @@ function MI2_DecodeQualityOverview( mobInfo, mobData, mobIndex )
 
 	if mobInfo.qi then
 		local a,b,r1,r2,r3,r4,r5 = string.find( mobInfo.qi, "(%d*)/(%d*)/(%d*)/(%d*)/(%d*)")
-		mobData.r1	= tonumber(r1)
-		mobData.r2	= tonumber(r2)
-		mobData.r3	= tonumber(r3)
-		mobData.r4	= tonumber(r4)
-		mobData.r5	= tonumber(r5)
+		mobData.r1	= tonumber(r1) or 0
+		mobData.r2	= tonumber(r2) or 0
+		mobData.r3	= tonumber(r3) or 0
+		mobData.r4	= tonumber(r4) or 0
+		mobData.r5	= tonumber(r5) or 0
 	end
 end -- MI2_DecodeQualityOverview
 
@@ -499,12 +489,12 @@ function MI2_DecodeCharData( mobInfo, mobData, playerName, mobIndex )
 	--printf("MI2_DecodeCharData '%s' for playerName '%s'",mobInfo[playerName] or 'nil', playerName or 'nil')
 	if mobInfo[playerName] then
 		local a,b,kl,mind,maxd,dps,xp = string.find( mobInfo[playerName], "(%d*)/(%d*)/(%d*)/(%d*)/*(%d*)")
-		mobData.kills		= tonumber(kl)
-		mobData.minDamage	= tonumber(mind)
-		mobData.maxDamage	= tonumber(maxd)
-		mobData.dps			= tonumber(dps)
-		mobData.xp			= tonumber(xp)
-		mobData.skinCount	= tonumber(sc)
+		mobData.kills		= tonumber(kl) or 0
+		mobData.minDamage	= tonumber(mind) or 0
+		mobData.maxDamage	= tonumber(maxd) or 0
+		mobData.dps			= tonumber(dps) or 0
+		mobData.xp			= tonumber(xp) or 0
+		mobData.skinCount	= tonumber(sc) or 0
 	end
 end -- MI2_DecodeCharData
 
@@ -524,18 +514,18 @@ function MI2_DecodeResists( mobInfo, mobData, mobIndex )
 	if mobInfo.re then
 		local a,b,ar,arHits,fi,fiHits,fr,frHits,ho,hoHits,na,naHits,sh,shHits = string.find( mobInfo.re, "(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)/(%-?%d*),(%-?%d*)")
 		mobData.resists = {}
-		mobData.resists.ar	= tonumber(ar)
-		mobData.resists.fi	= tonumber(fi)
-		mobData.resists.fr	= tonumber(fr)
-		mobData.resists.ho	= tonumber(ho)
-		mobData.resists.na	= tonumber(na)
-		mobData.resists.sh	= tonumber(sh)
-		mobData.resists.arHits	= tonumber(arHits)
-		mobData.resists.fiHits	= tonumber(fiHits)
-		mobData.resists.frHits	= tonumber(frHits)
-		mobData.resists.hoHits	= tonumber(hoHits)
-		mobData.resists.naHits	= tonumber(naHits)
-		mobData.resists.shHits	= tonumber(shHits)
+		mobData.resists.ar	= tonumber(ar) or 0
+		mobData.resists.fi	= tonumber(fi) or 0
+		mobData.resists.fr	= tonumber(fr) or 0
+		mobData.resists.ho	= tonumber(ho) or 0
+		mobData.resists.na	= tonumber(na) or 0
+		mobData.resists.sh	= tonumber(sh) or 0
+		mobData.resists.arHits	= tonumber(arHits) or 0
+		mobData.resists.fiHits	= tonumber(fiHits) or 0
+		mobData.resists.frHits	= tonumber(frHits) or 0
+		mobData.resists.hoHits	= tonumber(hoHits) or 0
+		mobData.resists.naHits	= tonumber(naHits) or 0
+		mobData.resists.shHits	= tonumber(shHits) or 0
 	end
 end -- MI2_DecodeMobLocation()
 
@@ -588,12 +578,22 @@ local function MI2_StoreBasicInfo( mobIndex, mobData )
 		mobType = nil
 	end
 
-	local basicInfo = (mobData.loots or "").."/"..(mobData.emptyLoots or "").."/"..(mobData.copper or "").."/"..(mobData.itemValue or "").."/"..(mobData.clothCount or "").."//"..(mobType or "").."/"..(mobData.skinCount or "")
+	local basicInfo = 	(mobData.loots or "").."/"..
+						(mobData.emptyLoots or "").."/"..
+						(mobData.copper or "").."/"..
+						(mobData.itemValue or "").."/"..
+						(mobData.clothCount or "").."//"..
+						(mobType or "").."/"..
+						(mobData.skinCount or "")
 	if basicInfo ~= "///////" then
 		mobInfo.bi = basicInfo
 	end
 
-	local qualityInfo = (mobData.r1 or "").."/"..(mobData.r2 or "").."/"..(mobData.r3 or "").."/"..(mobData.r4 or "").."/"..(mobData.r5 or "")
+	local qualityInfo = (mobData.r1 or "").."/"..
+						(mobData.r2 or "").."/"..
+						(mobData.r3 or "").."/"..
+						(mobData.r4 or "").."/"..
+						(mobData.r5 or "")
 	if qualityInfo ~= "////" then
 		mobInfo.qi = qualityInfo
 	end
@@ -613,7 +613,11 @@ function MI2_StoreLocation( mobIndex, loc )
 		MobInfoDB[mobIndex] = mobInfo
 	end
 
-	local locationInfo = (loc.x1 or "").."/"..(loc.y1 or "").."/"..(loc.x2 or "").."/"..(loc.y2 or "").."//"..(loc.z or "")
+	local locationInfo =	(loc.x1 or "").."/"..
+							(loc.y1 or "").."/"..
+							(loc.x2 or "").."/"..
+							(loc.y2 or "").."//"..
+							(loc.z or "")
 	if locationInfo ~= "/////" then
 		mobInfo.ml = locationInfo
 	end
@@ -632,7 +636,11 @@ local function MI2_StoreCharData( mobIndex, mobData, playerName )
 		MobInfoDB[mobIndex] = mobInfo
 	end
 
-	local playerInfo = (mobData.kills or "").."/"..(mobData.minDamage or "").."/"..(mobData.maxDamage or "").."/"..(mobData.dps or "").."/"..(mobData.xp or "")
+	local playerInfo =	(mobData.kills or "").."/"..
+						(mobData.minDamage or "").."/"..
+						(mobData.maxDamage or "").."/"..
+						(mobData.dps or "").."/"..
+						(mobData.xp or "")
 	if playerInfo ~= "////" then
 		mobInfo[playerName] = playerInfo		
 	end
@@ -862,7 +870,7 @@ end -- midebug()
 --
 function MI2_GetIndexComponents( mobIndex )
 	local a, b, mobName, mobLevel = string.find(mobIndex, "(.+):(.+)$")
-	mobLevel = tonumber(mobLevel)
+	mobLevel = tonumber(mobLevel) or 0
 	return mobName, mobLevel
 end  -- MI2_IndexComponents()
 
@@ -913,8 +921,8 @@ local function MI2_UpdateDatabaseV8ToV9( cleanupMode )
 	for idx, hpData in pairs(MobHealthDB) do
 	    if type(hpData) == "string" then
 			local _,_, pts, pct = string.find( hpData, "^(%d+)/(%d+)$")
-			pts = tonumber(pts)
-			pct = tonumber(pct)
+			pts = tonumber(pts) or 0
+			pct = tonumber(pct) or 0
 			if not pct or not pts or pct <= 0 or pts <= 0 then
 				MobHealthDB[idx] = nil
 			else
@@ -1491,19 +1499,19 @@ function MI2_LootName2Copper(item)
 	  
 	i = string.find(item, MI_TXT_GOLD )
 	if i then
-		g = tonumber( string.sub(item,0,i-1) )
+		g = tonumber( string.sub(item,0,i-1) ) or 0
 		item = string.sub(item,i+5,string.len(item))
 		money = money + ((g or 0) * COPPER_PER_GOLD)
 	end
 	i = string.find(item, MI_TXT_SILVER )
 	if i then
-		s = tonumber( string.sub(item,0,i-1) )
+		s = tonumber( string.sub(item,0,i-1) ) or 0
 		item = string.sub(item,i+7,string.len(item))
 		money = money + ((s or 0) * COPPER_PER_SILVER)
 	end
 	i = string.find(item, MI_TXT_COPPER )
 	if i then
-		c = tonumber( string.sub(item,0,i-1) )
+		c = tonumber( string.sub(item,0,i-1) ) or 0
 		money = money + (c or 0)
 	end
 
@@ -1759,9 +1767,7 @@ function MI2_RecordAllLootItems( mobIndex, numItems )
 		mobData.skinCount = (mobData.skinCount or 0) + 1
 	else
 		-- update loot and empty loot counter
-		print("before = ",mobData.loots or 'nil')
 		mobData.loots = (mobData.loots or 0) + 1
-		print("after = ",mobData.loots)
 		if numItems < 1 then
 			mobData.emptyLoots = (mobData.emptyLoots or 0) + 1
 		end
@@ -1867,7 +1873,7 @@ function MI2_GetLootItem( itemID )
 		local s,e, quality = string.find( itemString, "/(%d+)" )
 		if s then
 			itemString = string.sub( itemString, 1, s-1 )
-			quality = tonumber(quality)
+			quality = tonumber(quality) or 0
 			return itemString, MI2_QualityColor[quality], quality 
 		end
 	end
