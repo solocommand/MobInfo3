@@ -177,7 +177,9 @@ end -- MI2_EventLootSlotCleared
 local function MI2_EventLootClosed(self, event, ...)
 	local mobIndex = MI2_Target.mobIndex
 	if mobIndex and not MI2_LootFrameOpen then
-		MI2_RecordAllLootItems( mobIndex, 0 )
+	-- disabled: was randomly causing double loot count (race condition?)
+	-- testing confirms that auto-loot works without it anyway
+	--		MI2_RecordAllLootItems( mobIndex, 0 )
 	end
 	MI2_LootFrameOpen = false
 end -- MI2_EventLootClosed
