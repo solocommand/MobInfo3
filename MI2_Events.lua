@@ -553,12 +553,12 @@ end -- MI2_EventHostileDeath()
 --
 -- Combat log event handler : a unit has died in your vicinity
 -- This is the replacement for the no longer functioning "MI2_EventHostileDeath()"
---
 local function MI2_UnitDied(self, event, ...)
-	local timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName = ...
-	if destName then
+	-- updated COMBAT_LOG_EVENT_UNFILTERED signature for WoW API 4.2.0
+	local timestamp, subEvent, hideCaster, srcGUID, srcName, srcFlags, srcRaidFlags, dstGUID, dstName, dstFlags, dstRaidFlags = ...
+	if dstName then
 		--printf("no XP kill event: mob="..destName )
-		MI2_RecordKill( destName )
+		MI2_RecordKill( dstName )
 	end
 
 end -- MI2_UnitDied()
@@ -691,13 +691,13 @@ end -- MI2_OnEvent
 -- uses table with event handler info
 --
 function MI2_OnCombatLogEvent(self, event, ...)	
+	local timestamp, subEvent = ...
 	--midebug("event="..event..", a1="..(arg1 or "<nil>")..", a2="..(arg2 or "<nil>")..", a3="..(arg3 or "<nil>")..", a4="..(arg4 or "<nil>"))
-	-- local timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags = ...
-	local event = select(2, ...)
-	local realEvent = MI2_EventHandlers[event]
+	-- local timestamp, event, hideCaster, srcGUID, srcName, srcFlags, srcRaidFlags, dstGUID, dstName, dstFlags, dstRaidFlags = ...
+	local realEvent = MI2_EventHandlers[subEvent]
 	if realEvent then
 		--printf("Subevent = "..event)
-		realEvent.f(self, event, ...)
+		realEvent.f(self, subEvent, ...)
 	end
 end -- MI2_OnCombatLogEvent
 
@@ -717,7 +717,8 @@ function MI2_OnLoad(self)
 		COMBAT_LOG_EVENT_UNFILTERED = {f=MI2_OnCombatLogEvent, always=1},
 		UNIT_COMBAT = {f=MI2_EventUnitCombat, always=1},
 		UNIT_HEALTH = {f=MI2_EventUnitHealth, always=1},
-		UNIT_MANA = {f=MI2_EventUnitMana, always=1},
+-- deprecated in api 3.0.2
+--		UNIT_MANA = {f=MI2_EventUnitMana, always=1},
 		PLAYER_TARGET_CHANGED = {f=MI2_OnTargetChanged, always=1},
 		PLAYER_LOGIN = {f=MI2_Player_Login, always=1},
 
