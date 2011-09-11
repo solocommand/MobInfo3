@@ -41,7 +41,7 @@ function printf(...)
 		DEFAULT_CHAT_FRAME:AddMessage(HEADER .. string.format(...))
 	end
 end
-function printfd(...) if (debugging) then printf("DEBUG: ", ...) end end
+function printfd(...) if (debugging) then printf("DEBUG: ".. string.format(...)) end end
 function serialize(...) return DataDumper(...) end
 
 -- global vars
@@ -1829,7 +1829,6 @@ function MI2_StoreCorpseId( corpseId, isNewCorpse )
 		end
 	end
 end -- MI2_StoreCorpseId()
-
 
 -----------------------------------------------------------------------------
 -- MI2_CheckForCorpseReopen()

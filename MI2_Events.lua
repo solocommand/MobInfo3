@@ -16,6 +16,7 @@ MI2_CurZone = 0
 
 -- miscellaneous other event related global vairables 
 MI2_IsNonMobLoot = nil
+MI2_TradeskillUsed = nil
 
 -- local variables declaration and initialisation
 local MI2_EventHandlers = { }
@@ -142,12 +143,17 @@ local function MI2_EventLootOpened(self, event, ...)
 
 	-- check if this is a known corpse being reopened, reopened corpses
 	-- can (and must) be ignored because they have already been fully processed
-	-- question: why doesn't this trigger on skinning?
-	-- answer: it does
 	local isReopen = MI2_CheckForCorpseReopen(mobIndex)
 	if isReopen then
-		printf(MI_LightBlue.."<MI2> "..MI_White.."Drop data from reopened "..UnitClass("target").." is tainted and will not be recorded. "..MI_Gray.."(id "..isReopen..")")
-		return
+	-- check for targetted tradeskill use, and permit one exception
+		if MI2_TradeskillUsed then
+			link = GetSpellLink(MI2_TradeskillUsed)
+			-- printf(MI_LightBlue.."<MI2> "..MI_White.."Recorded "..link.." gather from "..UnitClass("target").." "..MI_Gray.."(id "..isReopen..")")
+			MI2_TradeskillUsed = nil
+		else
+			printf(MI_LightBlue.."<MI2> "..MI_White.."Drop data from reopened "..UnitClass("target").." is tainted and will not be recorded. "..MI_Gray.."(id "..isReopen..")")
+			return
+		end
 	end	
 
 	-- record all loot found on the corpse (called each time to catch skinning))
@@ -414,21 +420,47 @@ local function MI2_EventPetSpell(self, event, ...)
 end -- MI2_EventPetSpell()
 
 
+
+-- abbreviated list from KarniCrap's lib_Tradskills.lua
+-- used without permission o_O
+
+KarniCrap_tradeskillList = {
+	[49383] = "Engineering",		-- skin mob
+	[32606] = "Mining",				-- skin mob
+-- Herb Gathering
+	[2366]  = "Herb Gathering", 	-- Apprentice
+	[2368]  = "Herb Gathering", 	-- Journeyman
+	[3570]  = "Herb Gathering", 	-- Expert
+	[11993] = "Herb Gathering", 	-- Artisan
+	[28695] = "Herb Gathering", 	-- Master
+	[50300] = "Herb Gathering", 	-- Grand Master
+	[74519] = "Herb Gathering", 	-- Illustrious
+-- Skinning
+	[8613]  = "Skinning", 			-- Apprentice
+	[8617]  = "Skinning", 			-- Journeyman
+	[8618]  = "Skinning",			-- Expert
+	[10768] = "Skinning", 			-- Artisan
+	[32678] = "Skinning", 			-- Master
+	[50305] = "Skinning", 			-- Grand Master
+	[74522] = "Skinning", 			-- Illustrious
+}
+
 -----------------------------------------------------------------------------
 -- MI2_EventSpellSucceeded()
 --
 -- handler for event "UNIT_SPELLCAST_SUCCEEDED"
 -- checks for successfully skinning, mining, or herbalizing a mob
 --
+
 local function MI2_EventSpellSucceeded(self, event, caster, spell, _, _, id)
-	local SKINNING_ID = 32678
-	
 	if caster=="player" and MI2_Target.mobIndex then
 	-- the spell was cast on a mob... is it a tradeskill?
---		printfd("%s successfully cast %s (id: %s)", caster or 'nil',spell or 'nil',id or 'nil')
-		
-
-		return
+		link = GetSpellLink(id)
+		-- printfd("%s successfully cast %s (id: %s)", caster or 'nil',link or 'nil',id or 'nil')
+		if KarniCrap_tradeskillList[id] then
+			-- printfd("%s successfully used %s (id: %s) on mob", caster or 'nil',link or 'nil',id or 'nil')
+			MI2_TradeskillUsed = id
+		end
 	end
 end -- MI2_EventSpellPeriodic()
 
