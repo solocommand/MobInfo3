@@ -797,7 +797,7 @@ end  -- MI2_DeleteItemFromDB()
 -- name of the player is stored.
 --
 function MI2_SetPlayerName()
-	local charName = GetCVar( "realmName" )..':'..UnitName("player")
+	local charName = GetRealmName()..':'..UnitName("player")
 	if not MI2_CharTable[charName] then
 		MI2_CharTable.charCount = MI2_CharTable.charCount + 1
 		MI2_CharTable[charName] = "c"..MI2_CharTable.charCount
